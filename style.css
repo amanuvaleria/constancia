@@ -1,0 +1,270 @@
+:root {
+  --bg: #11181f;
+  --bg-elev: #1a222b;
+  --card: #1e2733;
+  --card-border: #2c3744;
+  --accent: #27e07a;
+  --accent-dim: #16311f;
+  --text: #f3f6f4;
+  --muted: #9aa7b2;
+  --danger: #ef4444;
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; }
+
+.app {
+  max-width: 520px;
+  margin: 0 auto;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ---------- topbar ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 8px;
+}
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+.brand h1 { font-size: 1.25rem; margin: 0; letter-spacing: 0.2px; }
+.profile-chip {
+  background: var(--bg-elev);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- pages ---------- */
+.page { display: none; padding: 4px 16px 16px; }
+.page.active { display: block; }
+
+.date-label {
+  color: var(--muted);
+  text-transform: capitalize;
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+}
+
+/* ---------- summary ---------- */
+.summary-card {
+  background: linear-gradient(135deg, var(--accent-dim), var(--card));
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.summary-count { display: flex; align-items: baseline; gap: 6px; }
+.summary-num { font-size: 2rem; font-weight: 800; color: var(--accent); }
+.summary-den { color: var(--muted); font-size: 0.9rem; }
+.summary-week {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.9rem; color: var(--text);
+  background: rgba(0,0,0,0.15);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.summary-week-big { font-size: 1rem; font-weight: 700; justify-content: center; }
+.week-icon { font-size: 1.1rem; }
+
+/* ---------- generic card ---------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+/* ---------- habit (water) card ---------- */
+.habit-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.habit-icon { font-size: 1.6rem; flex-shrink: 0; }
+.habit-title { display: flex; flex-direction: column; flex: 1; }
+.habit-title small { color: var(--muted); font-size: 0.8rem; }
+.habit-done-mark {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid #3a4756;
+  display: flex; align-items: center; justify-content: center;
+  color: transparent; font-size: 0.9rem; flex-shrink: 0;
+}
+.habit-card.done .habit-done-mark,
+.toggle-card.done .habit-done-mark {
+  background: var(--accent); border-color: var(--accent); color: #06260f;
+}
+
+.progress-bar {
+  height: 12px; border-radius: 8px; background: #121a22;
+  overflow: hidden; border: 1px solid var(--card-border);
+  margin-bottom: 12px;
+}
+.progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.25s; }
+
+.water-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.water-buttons .btn { width: 100%; }
+
+.custom-water-row {
+  display: flex; gap: 8px; margin-top: 10px;
+}
+.custom-water-row.hidden { display: none; }
+.custom-water-row input {
+  flex: 1; min-width: 0;
+  background: var(--bg-elev);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 1rem;
+}
+
+/* ---------- buttons ---------- */
+.btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.08s, opacity 0.15s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-water { background: #16303f; color: var(--accent); }
+.btn-outline { background: transparent; border: 1px solid var(--card-border); color: var(--text); }
+.btn-ghost { background: transparent; color: var(--muted); }
+.btn-primary { background: var(--accent); color: #06260f; }
+.btn:disabled { opacity: 0.4; }
+
+/* ---------- toggle habit card ---------- */
+.toggle-card { padding: 0; overflow: hidden; }
+.toggle-btn, .edit-toggle {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 16px 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.toggle-text { display: flex; flex-direction: column; flex: 1; }
+.toggle-text small { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+.toggle-card.done { background: var(--accent-dim); border-color: var(--accent); }
+
+/* ---------- history ---------- */
+.week-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; gap: 8px;
+}
+.week-nav span { font-size: 0.85rem; color: var(--muted); text-align: center; flex: 1; }
+.week-nav .btn { font-size: 0.8rem; padding: 10px 10px; flex-shrink: 0; }
+
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+.history-day-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.history-day-head {
+  width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  background: transparent; border: none; color: var(--text);
+  padding: 14px; cursor: pointer; text-align: left;
+}
+.history-day-date { flex: 1; font-weight: 600; text-transform: capitalize; font-size: 0.9rem; }
+.history-day-date.is-today { color: var(--accent); }
+.history-day-icons { font-size: 1rem; letter-spacing: 2px; color: var(--muted); }
+.history-day-icons .on { color: var(--accent); filter: none; }
+.history-day-caret { color: var(--muted); transition: transform 0.2s; }
+.history-day-card.open .history-day-caret { transform: rotate(180deg); }
+.history-day-body { padding: 0 12px 12px; }
+.history-day-body.hidden { display: none; }
+
+/* ---------- perfis ---------- */
+.section-title { font-size: 1.05rem; margin: 0 0 12px; }
+.section-subtitle { font-size: 0.95rem; margin: 14px 0 8px; }
+.profile-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.profile-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.profile-item.active { border-color: var(--accent); background: var(--accent-dim); }
+.profile-select-btn {
+  flex: 1; background: transparent; border: none; color: var(--text);
+  text-align: left; font-size: 0.95rem; padding: 4px; cursor: pointer;
+}
+.profile-delete-btn {
+  background: transparent; border: none; color: var(--danger);
+  font-size: 0.85rem; cursor: pointer; padding: 4px 6px;
+}
+.new-profile-row { display: flex; gap: 8px; }
+.new-profile-row input {
+  flex: 1; min-width: 0;
+  background: var(--bg-elev);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 1rem;
+}
+.settings-note { color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
+
+/* ---------- bottom nav ---------- */
+.bottom-nav {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  background: var(--bg-elev);
+  border-top: 1px solid var(--card-border);
+  padding: 8px 10px calc(env(safe-area-inset-bottom, 0px) + 6px);
+  max-width: 520px;
+  margin: 0 auto;
+}
+.nav-btn {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: transparent; border: none; color: var(--muted);
+  padding: 6px 0; font-size: 0.72rem; cursor: pointer;
+}
+.nav-btn .nav-icon { font-size: 1.3rem; }
+.nav-btn.active { color: var(--accent); }
+
+@media (max-width: 360px) {
+  .water-buttons { grid-template-columns: 1fr 1fr; }
+  .brand h1 { font-size: 1.1rem; }
+}

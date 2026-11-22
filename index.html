@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#11181f">
+<title>Constância</title>
+<meta name="description" content="Constância — mantenha a frequência na academia e seus hábitos diários.">
+
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Constância">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <h1>Constância</h1>
+    </div>
+    <button id="profileChip" class="profile-chip" title="Trocar perfil">—</button>
+  </header>
+
+  <!-- ===================== PÁGINA: HOJE ===================== -->
+  <main id="page-hoje" class="page active">
+
+    <p class="date-label" id="todayDateLabel"></p>
+
+    <section class="summary-card">
+      <div class="summary-count">
+        <span class="summary-num" id="summaryNum">0</span>
+        <span class="summary-den">/4 hábitos hoje</span>
+      </div>
+      <div class="summary-week">
+        <span class="week-icon">🏋️</span>
+        <span id="weekExerciseLabel">Exercício: 0/0 dias nesta semana</span>
+      </div>
+    </section>
+
+    <!-- Água -->
+    <section class="card habit-card" id="card-agua">
+      <div class="habit-head">
+        <span class="habit-icon">💧</span>
+        <div class="habit-title">
+          <strong>Água</strong>
+          <small id="aguaStatusText">0 mL de 3.000 mL</small>
+        </div>
+        <span class="habit-done-mark" id="aguaDoneMark">✓</span>
+      </div>
+
+      <div class="progress-bar"><div class="progress-fill" id="aguaProgressFill"></div></div>
+
+      <div class="water-buttons">
+        <button class="btn btn-water" data-add="250">+250 mL</button>
+        <button class="btn btn-water" data-add="500">+500 mL</button>
+        <button class="btn btn-outline" id="aguaCustomBtn">Outra qtd.</button>
+        <button class="btn btn-ghost" id="aguaUndoBtn">↩ Desfazer</button>
+      </div>
+
+      <div class="custom-water-row hidden" id="aguaCustomRow">
+        <input type="number" id="aguaCustomInput" placeholder="mL" min="1" step="50" inputmode="numeric">
+        <button class="btn btn-primary" id="aguaCustomConfirm">Adicionar</button>
+        <button class="btn btn-ghost" id="aguaCustomCancel">Cancelar</button>
+      </div>
+    </section>
+
+    <!-- Exercício -->
+    <section class="card toggle-card" data-habit="exercicio">
+      <button class="toggle-btn" id="btn-exercicio">
+        <span class="habit-icon">🏋️</span>
+        <span class="toggle-text">
+          <strong>Exercício</strong>
+          <small id="exercicioStatusText">Fiz exercício hoje</small>
+        </span>
+        <span class="habit-done-mark">✓</span>
+      </button>
+    </section>
+
+    <!-- Fibras -->
+    <section class="card toggle-card" data-habit="fibras">
+      <button class="toggle-btn" id="btn-fibras">
+        <span class="habit-icon">🥦</span>
+        <span class="toggle-text">
+          <strong>Fibras</strong>
+          <small id="fibrasStatusText">Comi fibras hoje</small>
+        </span>
+        <span class="habit-done-mark">✓</span>
+      </button>
+    </section>
+
+    <!-- Dieta -->
+    <section class="card toggle-card" data-habit="dieta">
+      <button class="toggle-btn" id="btn-dieta">
+        <span class="habit-icon">🥗</span>
+        <span class="toggle-text">
+          <strong>Dieta</strong>
+          <small id="dietaStatusText">Segui meu plano alimentar hoje</small>
+        </span>
+        <span class="habit-done-mark">✓</span>
+      </button>
+    </section>
+
+  </main>
+
+  <!-- ===================== PÁGINA: HISTÓRICO ===================== -->
+  <main id="page-historico" class="page">
+
+    <section class="week-nav">
+      <button class="btn btn-ghost" id="weekPrevBtn">‹ Semana anterior</button>
+      <span id="weekRangeLabel">—</span>
+      <button class="btn btn-ghost" id="weekNextBtn">Próxima semana ›</button>
+    </section>
+
+    <section class="summary-card">
+      <div class="summary-week summary-week-big">
+        <span class="week-icon">🏋️</span>
+        <span id="historyWeekExerciseLabel">Exercício: 0/7 dias</span>
+      </div>
+    </section>
+
+    <section id="historyList" class="history-list"></section>
+
+  </main>
+
+  <!-- ===================== PÁGINA: PERFIS ===================== -->
+  <main id="page-perfis" class="page">
+
+    <section class="card">
+      <h2 class="section-title">Perfis</h2>
+      <div id="profileList" class="profile-list"></div>
+
+      <div class="new-profile-row">
+        <input type="text" id="newProfileInput" placeholder="Nome do novo perfil" maxlength="24">
+        <button class="btn btn-primary" id="addProfileBtn">Criar perfil</button>
+      </div>
+    </section>
+
+    <section class="card settings-card">
+      <h2 class="section-title">Configurações</h2>
+      <p class="settings-note">
+        ⚠️ Seus registros ficam salvos <strong>somente neste navegador</strong>.
+        Cada iPhone (ou cada navegador) tem seu próprio histórico — os dados
+        não sincronizam automaticamente entre aparelhos.
+      </p>
+      <h3 class="section-subtitle">Adicionar à Tela de Início</h3>
+      <p class="settings-note">
+        No Safari do iPhone: toque em <strong>Compartilhar</strong> (ícone de
+        quadrado com seta) e depois em <strong>“Adicionar à Tela de Início”</strong>.
+        O Constância abrirá em tela cheia, como um app instalado.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- ===================== NAV INFERIOR ===================== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-page="hoje">
+      <span class="nav-icon">☀️</span><span>Hoje</span>
+    </button>
+    <button class="nav-btn" data-page="historico">
+      <span class="nav-icon">📅</span><span>Histórico</span>
+    </button>
+    <button class="nav-btn" data-page="perfis">
+      <span class="nav-icon">👤</span><span>Perfis</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- Template para um dia editável no histórico -->
+<template id="historyDayTemplate">
+  <article class="history-day-card">
+    <button class="history-day-head">
+      <span class="history-day-date"></span>
+      <span class="history-day-icons"></span>
+      <span class="history-day-caret">▾</span>
+    </button>
+    <div class="history-day-body hidden">
+      <div class="card habit-card edit-agua">
+        <div class="habit-head">
+          <span class="habit-icon">💧</span>
+          <div class="habit-title">
+            <strong>Água</strong>
+            <small class="edit-agua-status">0 mL de 3.000 mL</small>
+          </div>
+          <span class="habit-done-mark edit-agua-mark">✓</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill edit-agua-fill"></div></div>
+        <div class="water-buttons">
+          <button class="btn btn-water" data-edit-add="250">+250 mL</button>
+          <button class="btn btn-water" data-edit-add="500">+500 mL</button>
+          <button class="btn btn-outline edit-agua-custom-btn">Outra qtd.</button>
+          <button class="btn btn-ghost edit-agua-undo-btn">↩ Desfazer</button>
+        </div>
+        <div class="custom-water-row hidden edit-agua-custom-row">
+          <input type="number" class="edit-agua-custom-input" placeholder="mL" min="1" step="50" inputmode="numeric">
+          <button class="btn btn-primary edit-agua-custom-confirm">Adicionar</button>
+          <button class="btn btn-ghost edit-agua-custom-cancel">Cancelar</button>
+        </div>
+      </div>
+
+      <button class="card toggle-card edit-toggle" data-habit="exercicio">
+        <span class="habit-icon">🏋️</span>
+        <span class="toggle-text"><strong>Exercício</strong><small>Fez exercício</small></span>
+        <span class="habit-done-mark">✓</span>
+      </button>
+      <button class="card toggle-card edit-toggle" data-habit="fibras">
+        <span class="habit-icon">🥦</span>
+        <span class="toggle-text"><strong>Fibras</strong><small>Comeu fibras</small></span>
+        <span class="habit-done-mark">✓</span>
+      </button>
+      <button class="card toggle-card edit-toggle" data-habit="dieta">
+        <span class="habit-icon">🥗</span>
+        <span class="toggle-text"><strong>Dieta</strong><small>Seguiu o plano</small></span>
+        <span class="habit-done-mark">✓</span>
+      </button>
+    </div>
+  </article>
+</template>
+
+<script src="./app.js"></script>
+</body>
+</html>
