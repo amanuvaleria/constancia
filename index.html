@@ -44,6 +44,29 @@
       </div>
     </section>
 
+    <!-- Missão principal (chefe da semana) -->
+    <section class="card mission-card" id="card-missao">
+      <div class="mission-head">
+        <span class="mission-arc" id="missionArcTitle">Arco 1 — A Torre do Impulso</span>
+        <button class="btn-link" id="missionStoryBtn">📖 Ver história</button>
+      </div>
+      <h2 class="mission-title">Treinar na academia</h2>
+
+      <div class="boss-row">
+        <span class="boss-emoji" id="bossEmoji">🗿</span>
+        <div class="boss-info">
+          <strong id="bossName">Guardião da Inércia</strong>
+          <div class="boss-hp-bar"><div class="boss-hp-fill" id="bossHpFill"></div></div>
+          <small id="bossHpText">3 golpes restantes</small>
+        </div>
+        <span class="hero-emoji" id="heroEmoji">🤺</span>
+      </div>
+
+      <p class="mission-status" id="missionStatusText">Ainda sem treino registrado hoje.</p>
+
+      <button class="btn btn-primary btn-big" id="btn-treino">Concluí meu treino</button>
+    </section>
+
     <!-- Água -->
     <section class="card habit-card" id="card-agua">
       <div class="habit-head">
@@ -69,18 +92,6 @@
         <button class="btn btn-primary" id="aguaCustomConfirm">Adicionar</button>
         <button class="btn btn-ghost" id="aguaCustomCancel">Cancelar</button>
       </div>
-    </section>
-
-    <!-- Exercício -->
-    <section class="card toggle-card" data-habit="exercicio">
-      <button class="toggle-btn" id="btn-exercicio">
-        <span class="habit-icon">🏋️</span>
-        <span class="toggle-text">
-          <strong>Exercício</strong>
-          <small id="exercicioStatusText">Fiz exercício hoje</small>
-        </span>
-        <span class="habit-done-mark">✓</span>
-      </button>
     </section>
 
     <!-- Fibras -->
@@ -142,6 +153,30 @@
       </div>
     </section>
 
+    <section class="card mission-settings-card">
+      <h2 class="section-title">Missão &amp; avisos — <span id="missionSettingsProfileName">perfil</span></h2>
+
+      <label class="field-label">Meta semanal de treinos</label>
+      <div class="stepper">
+        <button class="btn btn-outline" id="goalMinusBtn">−</button>
+        <span id="weeklyGoalValue">3</span>
+        <button class="btn btn-outline" id="goalPlusBtn">+</button>
+      </div>
+
+      <label class="field-label">Dias de treino planejados</label>
+      <div class="day-chips" id="trainDaysChips"></div>
+
+      <label class="field-label" for="reminderTimeInput">Horário do aviso</label>
+      <input type="time" id="reminderTimeInput" class="time-input">
+
+      <div class="reminder-buttons">
+        <button class="btn btn-primary" id="enableAlertsBtn">Ativar avisos de missão</button>
+        <button class="btn btn-outline" id="testAlertBtn">Enviar aviso de teste</button>
+        <button class="btn btn-ghost" id="pauseAlertsBtn">Pausar avisos</button>
+      </div>
+      <p class="settings-note" id="alertsStatusNote">Avisos de missão: desativados.</p>
+    </section>
+
     <section class="card settings-card">
       <h2 class="section-title">Configurações</h2>
       <p class="settings-note">
@@ -153,7 +188,9 @@
       <p class="settings-note">
         No Safari do iPhone: toque em <strong>Compartilhar</strong> (ícone de
         quadrado com seta) e depois em <strong>“Adicionar à Tela de Início”</strong>.
-        O Constância abrirá em tela cheia, como um app instalado.
+        O Constância abrirá em tela cheia, como um app instalado. Depois de
+        instalado, abra pelo ícone e toque em “Ativar avisos de missão” para
+        autorizar as notificações.
       </p>
     </section>
 
@@ -172,6 +209,19 @@
     </button>
   </nav>
 
+</div>
+
+<!-- Modal de história (cenas da arena) -->
+<div class="story-overlay hidden" id="storyOverlay">
+  <div class="story-card">
+    <p class="story-location" id="storyLocation">Torre do Impulso</p>
+    <div class="story-dialogue" id="storyDialogueBody"></div>
+    <div class="story-reward hidden" id="storyRewardBox">
+      <div class="reward-item"><span class="reward-emoji">🎖️</span><span id="storyRewardBadge">—</span></div>
+      <div class="reward-item"><span class="reward-emoji">💍</span><span id="storyRewardAccessory">—</span></div>
+    </div>
+    <button class="btn btn-primary btn-big" id="storyContinueBtn">Continuar</button>
+  </div>
 </div>
 
 <!-- Template para um dia editável no histórico -->

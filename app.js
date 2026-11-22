@@ -78,11 +78,49 @@ function todayKey() {
 }
 
 // ---------------------------------------------------------------
+// História — Arco 1: A Torre do Impulso
+// ---------------------------------------------------------------
+
+const STORY_ARC = {
+  id: "torre-impulso",
+  title: "Arco 1 — A Torre do Impulso",
+  location: "Torre do Impulso, nos arredores da Academia Vargen",
+  boss: { name: "Guardião da Inércia", emoji: "🗿" },
+  reward: { badge: "Emblema da Primeira Chama", accessory: "Bracelete de Impulso" },
+  intro: [
+    { speaker: "Vix", text: "Aprendiz! Chegou a hora. A Torre do Impulso se abriu diante de você." },
+    { speaker: "Treinadora Kaya", text: "Lá dentro mora o Guardião da Inércia — um gigante de pedra que se alimenta da nossa preguiça." },
+    { speaker: "Treinadora Kaya", text: "Cada treino que você completar na academia é um golpe de verdade contra ele. Não existe treino fácil, existe treino feito." },
+    { speaker: "Vix", text: "Vença o Guardião antes que a semana acabe! Se não vencer, pode tentar de novo na semana seguinte." },
+  ],
+  victory: [
+    { speaker: "Treinadora Kaya", text: "As rachaduras se abrem... a pedra não aguenta mais!" },
+    { speaker: "Narrador", text: "O Guardião da Inércia desmorona em pó verde brilhante." },
+    { speaker: "Vix", text: "Você conseguiu! O primeiro Guardião da Arena caiu diante da sua constância." },
+    { speaker: "Treinadora Kaya", text: "Isso não foi sorte. Foi hábito. Guarde esse emblema — ele é prova do que você já é capaz de sustentar." },
+  ],
+};
+
+// ---------------------------------------------------------------
 // Perfis
 // ---------------------------------------------------------------
 
 function uid() {
   return `p_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function defaultStoryState() {
+  return { introSeen: false, bossDefeated: false, victorySeen: false, badges: [], accessories: [] };
+}
+
+// Preenche campos novos em perfis antigos sem apagar o que já existe
+function ensureProfileDefaults(profile) {
+  if (profile.weeklyGoal == null) profile.weeklyGoal = 3;
+  if (!Array.isArray(profile.trainDays)) profile.trainDays = [1, 2, 3, 4, 5]; // seg-sex
+  if (!profile.reminderTime) profile.reminderTime = "18:00";
+  if (profile.reminderEnabled == null) profile.reminderEnabled = false;
+  if (!profile.story) profile.story = defaultStoryState();
+  return profile;
 }
 
 function loadProfiles() {
@@ -93,11 +131,19 @@ function loadProfiles() {
     profiles = [];
   }
   if (!Array.isArray(profiles) || profiles.length === 0) {
-    const defaultProfile = { id: uid(), name: "Perfil 1" };
+    const defaultProfile = ensureProfileDefaults({ id: uid(), name: "Perfil 1" });
     profiles = [defaultProfile];
     saveProfiles(profiles);
     setActiveProfileId(defaultProfile.id);
+    return profiles;
   }
+  let changed = false;
+  profiles.forEach((p) => {
+    const before = JSON.stringify(p);
+    ensureProfileDefaults(p);
+    if (JSON.stringify(p) !== before) changed = true;
+  });
+  if (changed) saveProfiles(profiles);
   return profiles;
 }
 
@@ -127,11 +173,19 @@ function getActiveProfile() {
 
 function createProfile(name) {
   const profiles = loadProfiles();
-  const profile = { id: uid(), name: name.trim().slice(0, 24) || "Novo perfil" };
+  const profile = ensureProfileDefaults({ id: uid(), name: name.trim().slice(0, 24) || "Novo perfil" });
   profiles.push(profile);
   saveProfiles(profiles);
   setActiveProfileId(profile.id);
   return profile;
+}
+
+function updateProfile(id, mutator) {
+  const profiles = loadProfiles();
+  const profile = profiles.find((p) => p.id === id);
+  if (!profile) return;
+  mutator(profile);
+  saveProfiles(profiles);
 }
 
 function deleteProfile(id) {
@@ -176,6 +230,7 @@ function mutateEntry(profileId, dateKey, mutator) {
   mutator(entry);
   data[dateKey] = entry;
   saveData(profileId, data);
+  checkBossVictory(profileId);
   onDataChanged();
 }
 
@@ -221,6 +276,67 @@ function countExerciseInWeek(profileId, monday) {
 }
 
 // ---------------------------------------------------------------
+// Chefe da semana (vida = meta semanal - treinos registrados)
+// Um golpe por data de treino; recalculado sempre a partir do
+// histórico (corrigir um dia passado recalcula a vida na hora).
+// ---------------------------------------------------------------
+
+function getBossState(profile) {
+  const monday = getMonday(todayDate());
+  const goal = profile.weeklyGoal || 3;
+  const hits = countExerciseInWeek(profile.id, monday);
+  const hitsCapped = Math.min(hits, goal);
+  const hp = Math.max(0, goal - hitsCapped);
+  return {
+    bossName: STORY_ARC.boss.name,
+    bossEmoji: STORY_ARC.boss.emoji,
+    goal,
+    hits: hitsCapped,
+    hitsLeft: hp,
+    pctHp: goal > 0 ? (hp / goal) * 100 : 0,
+    victoryNow: hitsCapped >= goal,
+    alreadyDefeated: !!(profile.story && profile.story.bossDefeated),
+  };
+}
+
+// Verifica se o chefe acabou de ser derrotado nesta semana e, se
+// sim, registra a vitória permanentemente (emblema, acessório, cena).
+function checkBossVictory(profileId) {
+  const profiles = loadProfiles();
+  const profile = profiles.find((p) => p.id === profileId);
+  if (!profile) return;
+  const boss = getBossState(profile);
+  if (boss.victoryNow && !profile.story.bossDefeated) {
+    profile.story.bossDefeated = true;
+    profile.story.victorySeen = false;
+    if (!profile.story.badges.includes(STORY_ARC.reward.badge)) {
+      profile.story.badges.push(STORY_ARC.reward.badge);
+    }
+    if (!profile.story.accessories.includes(STORY_ARC.reward.accessory)) {
+      profile.story.accessories.push(STORY_ARC.reward.accessory);
+    }
+    saveProfiles(profiles);
+  }
+}
+
+// XP simples: cada dia com água/fibras/dieta concluídos dá pontos.
+// Recalculado sempre a partir do histórico completo (sem contador manual).
+function computeXp(profileId) {
+  const data = loadData(profileId);
+  let xp = 0;
+  Object.values(data).forEach((entry) => {
+    if (isAguaDone({ ...defaultEntry(), ...entry })) xp += 10;
+    if (entry.fibras) xp += 10;
+    if (entry.dieta) xp += 10;
+  });
+  return xp;
+}
+
+function computeLevel(xp) {
+  return Math.floor(xp / 100) + 1;
+}
+
+// ---------------------------------------------------------------
 // Estado de UI
 // ---------------------------------------------------------------
 
@@ -248,7 +364,6 @@ function renderToday() {
   document.getElementById("aguaUndoBtn").disabled = entry.agua.length === 0;
 
   // exercício / fibras / dieta
-  setToggleUI("exercicio", entry.exercicio, "Exercício feito hoje 💪", "Ainda sem registro — tudo bem, dia de descanso?");
   setToggleUI("fibras", entry.fibras, "Fibras registradas hoje 👍", "Ainda sem registro hoje");
   setToggleUI("dieta", entry.dieta, "Plano alimentar seguido hoje 👍", "Ainda sem registro hoje");
 
@@ -259,6 +374,67 @@ function renderToday() {
   const monday = getMonday(todayDate());
   const exCount = countExerciseInWeek(profile.id, monday);
   document.getElementById("weekExerciseLabel").textContent = `Exercício: ${exCount}/7 dias nesta semana`;
+
+  renderMission(profile, entry);
+}
+
+// ---------------------------------------------------------------
+// Render: missão / chefe da semana
+// ---------------------------------------------------------------
+
+function isPlannedTrainingDay(profile, date) {
+  const days = profile.trainDays;
+  if (!Array.isArray(days) || days.length === 0) return true; // sem config = todo dia é válido
+  return days.includes(date.getDay());
+}
+
+function renderMission(profile, entry) {
+  const boss = getBossState(profile);
+  const card = document.getElementById("card-missao");
+
+  document.getElementById("missionArcTitle").textContent = STORY_ARC.title;
+  document.getElementById("bossName").textContent = boss.bossName;
+  document.getElementById("bossEmoji").textContent = boss.alreadyDefeated ? "💨" : boss.bossEmoji;
+
+  const fill = document.getElementById("bossHpFill");
+  fill.style.width = `${Math.max(0, Math.min(100, boss.pctHp))}%`;
+  fill.classList.toggle("defeated", boss.alreadyDefeated);
+
+  const hpText = document.getElementById("bossHpText");
+  if (boss.alreadyDefeated) {
+    hpText.textContent = "Guardião derrotado nesta semana 🎉";
+  } else if (boss.hitsLeft <= 0) {
+    hpText.textContent = "Chefe prestes a cair!";
+  } else if (boss.hitsLeft === 1) {
+    hpText.textContent = "Falta 1 golpe para vencer";
+  } else {
+    hpText.textContent = `Faltam ${boss.hitsLeft} golpes para vencer`;
+  }
+
+  card.classList.toggle("victory", boss.alreadyDefeated);
+
+  const statusEl = document.getElementById("missionStatusText");
+  const btn = document.getElementById("btn-treino");
+  const today = todayDate();
+  const planned = isPlannedTrainingDay(profile, today);
+
+  if (entry.exercicio) {
+    statusEl.textContent = "Treino de hoje concluído 💪 Golpe já aplicado no chefe desta semana.";
+    btn.textContent = "Treino concluído hoje ✓";
+  } else if (!planned) {
+    statusEl.textContent = "🌿 Dia de recuperação. Treinar hoje também conta para a meta, se quiser.";
+    btn.textContent = "Concluí meu treino";
+  } else {
+    statusEl.textContent = "Ainda sem treino registrado hoje.";
+    btn.textContent = "Concluí meu treino";
+  }
+
+  // cenas: intro (uma vez) e vitória (quando ainda não vista)
+  if (!profile.story.introSeen) {
+    showIntroScene(profile.id);
+  } else if (profile.story.bossDefeated && !profile.story.victorySeen) {
+    showVictoryScene(profile.id);
+  }
 }
 
 function setToggleUI(habit, done, doneText, pendingText) {
@@ -433,6 +609,82 @@ function refreshHistoryDayIcons(dateKey) {
 }
 
 // ---------------------------------------------------------------
+// Modal de história (cenas da arena)
+// ---------------------------------------------------------------
+
+let storyOverlayOpen = false;
+
+function renderDialogueLines(lines) {
+  const body = document.getElementById("storyDialogueBody");
+  body.innerHTML = "";
+  lines.forEach((line) => {
+    const p = document.createElement("p");
+    p.innerHTML = `<strong>${line.speaker}:</strong> ${line.text}`;
+    body.appendChild(p);
+  });
+}
+
+function openStoryOverlay({ lines, reward }) {
+  if (storyOverlayOpen) return;
+  storyOverlayOpen = true;
+  document.getElementById("storyLocation").textContent = STORY_ARC.location;
+  renderDialogueLines(lines);
+  const rewardBox = document.getElementById("storyRewardBox");
+  if (reward) {
+    document.getElementById("storyRewardBadge").textContent = reward.badge;
+    document.getElementById("storyRewardAccessory").textContent = reward.accessory;
+    rewardBox.classList.remove("hidden");
+  } else {
+    rewardBox.classList.add("hidden");
+  }
+  document.getElementById("storyOverlay").classList.remove("hidden");
+}
+
+function closeStoryOverlay() {
+  storyOverlayOpen = false;
+  document.getElementById("storyOverlay").classList.add("hidden");
+}
+
+function showIntroScene(profileId) {
+  if (storyOverlayOpen) return;
+  openStoryOverlay({ lines: STORY_ARC.intro });
+  document.getElementById("storyContinueBtn").onclick = () => {
+    updateProfile(profileId, (p) => { p.story.introSeen = true; });
+    closeStoryOverlay();
+    renderAll();
+  };
+}
+
+function showVictoryScene(profileId) {
+  if (storyOverlayOpen) return;
+  openStoryOverlay({ lines: STORY_ARC.victory, reward: STORY_ARC.reward });
+  document.getElementById("storyContinueBtn").onclick = () => {
+    updateProfile(profileId, (p) => { p.story.victorySeen = true; });
+    closeStoryOverlay();
+    renderAll();
+  };
+}
+
+function showStoryRecap(profile) {
+  if (storyOverlayOpen) return;
+  const lines = profile.story.bossDefeated ? STORY_ARC.victory : STORY_ARC.intro;
+  openStoryOverlay({ lines, reward: profile.story.bossDefeated ? STORY_ARC.reward : null });
+  document.getElementById("storyContinueBtn").onclick = () => closeStoryOverlay();
+}
+
+// Animação rápida de ataque ao registrar o treino de hoje
+function playAttackAnimation() {
+  const hero = document.getElementById("heroEmoji");
+  const boss = document.getElementById("bossEmoji");
+  hero.classList.add("attack");
+  boss.classList.add("shake");
+  setTimeout(() => {
+    hero.classList.remove("attack");
+    boss.classList.remove("shake");
+  }, 650);
+}
+
+// ---------------------------------------------------------------
 // Render: página "Perfis"
 // ---------------------------------------------------------------
 
@@ -472,6 +724,48 @@ function renderProfiles() {
   });
 
   document.getElementById("profileChip").textContent = getActiveProfile().name;
+
+  renderMissionSettings(getActiveProfile());
+}
+
+// ---------------------------------------------------------------
+// Render: Missão & avisos (dentro de Perfis)
+// ---------------------------------------------------------------
+
+const DAY_LABELS = ["D", "S", "T", "Q", "Q", "S", "S"]; // Dom..Sáb, iniciais
+
+function renderMissionSettings(profile) {
+  document.getElementById("missionSettingsProfileName").textContent = profile.name;
+  document.getElementById("weeklyGoalValue").textContent = profile.weeklyGoal;
+  document.getElementById("reminderTimeInput").value = profile.reminderTime;
+
+  const chipsEl = document.getElementById("trainDaysChips");
+  chipsEl.innerHTML = "";
+  for (let d = 0; d < 7; d++) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "day-chip" + (profile.trainDays.includes(d) ? " selected" : "");
+    chip.textContent = DAY_LABELS[d];
+    chip.addEventListener("click", () => {
+      updateProfile(profile.id, (p) => {
+        const idx = p.trainDays.indexOf(d);
+        if (idx >= 0) p.trainDays.splice(idx, 1);
+        else p.trainDays.push(d);
+      });
+      renderMissionSettings(getActiveProfile());
+      renderToday();
+    });
+    chipsEl.appendChild(chip);
+  }
+
+  const note = document.getElementById("alertsStatusNote");
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+    note.textContent = "Este navegador não suporta notificações push.";
+  } else if (profile.reminderEnabled) {
+    note.textContent = `Avisos de missão: ativados, às ${profile.reminderTime}.`;
+  } else {
+    note.textContent = "Avisos de missão: desativados.";
+  }
 }
 
 // ---------------------------------------------------------------
@@ -487,6 +781,143 @@ function renderAll() {
 function onDataChanged() {
   renderToday();
   refreshHistoryTopSummary();
+  syncStatusIfEnabled(getActiveProfile());
+}
+
+// ---------------------------------------------------------------
+// Avisos de missão (Web Push)
+// ---------------------------------------------------------------
+
+// Preencher após publicar o backend (server/README.md explica como).
+const PUSH_BACKEND_URL = ""; // ex: "https://constancia-push.vercel.app"
+const VAPID_PUBLIC_KEY = "BGNFrWvgZHYqDCciDP8aWVYxFuW0WL8YBY8Qf78TDbC6HqwKWgLF1jGkzXq2mr2vjpEe4BJ50kcr1IMLYrL1udI";
+
+function getDeviceId() {
+  let id = localStorage.getItem(`${STORAGE_PREFIX}:deviceId`);
+  if (!id) {
+    id = `d_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(`${STORAGE_PREFIX}:deviceId`, id);
+  }
+  return id;
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+async function postBackend(path, payload) {
+  if (!PUSH_BACKEND_URL) return null;
+  try {
+    const res = await fetch(`${PUSH_BACKEND_URL}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return res.json().catch(() => null);
+  } catch {
+    return null;
+  }
+}
+
+async function enableMissionAlerts(profile) {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    alert("Este navegador não suporta avisos push.");
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    alert("Permissão de notificações negada. Ative nas configurações do Safari/iOS para este site.");
+    return;
+  }
+
+  updateProfile(profile.id, (p) => { p.reminderEnabled = true; });
+
+  if (PUSH_BACKEND_URL && VAPID_PUBLIC_KEY) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+      }
+      await postBackend("/api/subscribe", {
+        deviceId: getDeviceId(),
+        profileId: profile.id,
+        profileName: profile.name,
+        subscription: sub,
+        trainDays: profile.trainDays,
+        reminderTime: profile.reminderTime,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        enabled: true,
+      });
+    } catch (err) {
+      alert("Não foi possível concluir a inscrição de avisos: " + err.message);
+    }
+  } else {
+    alert(
+      "Permissão concedida! O backend de envio ainda não foi publicado, então por enquanto só o " +
+      "aviso de teste local funciona (com o app aberto)."
+    );
+  }
+  renderMissionSettings(getActiveProfile());
+}
+
+async function sendTestAlert(profile) {
+  if (PUSH_BACKEND_URL) {
+    const result = await postBackend("/api/test-push", { deviceId: getDeviceId(), profileId: profile.id });
+    if (result && result.ok) {
+      alert("Aviso de teste enviado! Deve chegar em poucos segundos.");
+    } else {
+      alert("Não foi possível enviar o aviso de teste pelo backend. Veja o console para detalhes.");
+    }
+    return;
+  }
+  if ("serviceWorker" in navigator && "Notification" in window) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification("⚔️ Missão de hoje — teste", {
+        body: "Este é um aviso de teste local do Constância.",
+        icon: "./icon-192.png",
+      });
+    } catch (err) {
+      alert("Não foi possível mostrar a notificação de teste: " + err.message);
+    }
+  } else {
+    alert("Notificações não suportadas neste navegador.");
+  }
+}
+
+async function pauseMissionAlerts(profile) {
+  updateProfile(profile.id, (p) => { p.reminderEnabled = false; });
+  await postBackend("/api/subscribe", {
+    deviceId: getDeviceId(),
+    profileId: profile.id,
+    profileName: profile.name,
+    subscription: null,
+    enabled: false,
+  });
+  renderMissionSettings(getActiveProfile());
+}
+
+// Sincroniza o status do dia com o backend (para ele saber se deve pular o aviso)
+function syncStatusIfEnabled(profile) {
+  if (!profile.reminderEnabled || !PUSH_BACKEND_URL) return;
+  const entry = getEntry(profile.id, todayKey());
+  const boss = getBossState(profile);
+  postBackend("/api/sync-status", {
+    deviceId: getDeviceId(),
+    profileId: profile.id,
+    dateKey: todayKey(),
+    exercicioDoneToday: entry.exercicio,
+    boss: { name: boss.bossName, hitsLeft: boss.hitsLeft },
+  });
 }
 
 // ---------------------------------------------------------------
@@ -510,6 +941,13 @@ function goToPage(pageName) {
 function init() {
   loadProfiles();
   getActiveProfileId();
+
+  // aberto a partir de um clique numa notificação push? abre o perfil certo
+  const urlParams = new URLSearchParams(location.search);
+  const profileFromUrl = urlParams.get("profile");
+  if (profileFromUrl && loadProfiles().some((p) => p.id === profileFromUrl)) {
+    setActiveProfileId(profileFromUrl);
+  }
 
   // navegação inferior
   document.querySelectorAll(".nav-btn").forEach((btn) => {
@@ -542,11 +980,48 @@ function init() {
   });
 
   // exercício / fibras / dieta (hoje)
-  ["exercicio", "fibras", "dieta"].forEach((habit) => {
+  document.getElementById("btn-treino").addEventListener("click", () => {
+    const profileId = getActiveProfile().id;
+    const key = todayKey();
+    const before = getEntry(profileId, key).exercicio;
+    toggleHabit(profileId, key, "exercicio");
+    const after = getEntry(profileId, key).exercicio;
+    if (!before && after) playAttackAnimation();
+  });
+  ["fibras", "dieta"].forEach((habit) => {
     document.getElementById(`btn-${habit}`).addEventListener("click", () => {
       toggleHabit(getActiveProfile().id, todayKey(), habit);
     });
   });
+
+  // história: botão "ver história" e fechar modal
+  document.getElementById("missionStoryBtn").addEventListener("click", () => {
+    showStoryRecap(getActiveProfile());
+  });
+
+  // perfis: meta semanal de treinos
+  document.getElementById("goalMinusBtn").addEventListener("click", () => {
+    const profile = getActiveProfile();
+    updateProfile(profile.id, (p) => { p.weeklyGoal = Math.max(1, (p.weeklyGoal || 3) - 1); });
+    renderMissionSettings(getActiveProfile());
+    renderToday();
+  });
+  document.getElementById("goalPlusBtn").addEventListener("click", () => {
+    const profile = getActiveProfile();
+    updateProfile(profile.id, (p) => { p.weeklyGoal = Math.min(7, (p.weeklyGoal || 3) + 1); });
+    renderMissionSettings(getActiveProfile());
+    renderToday();
+  });
+  document.getElementById("reminderTimeInput").addEventListener("change", (ev) => {
+    const profile = getActiveProfile();
+    updateProfile(profile.id, (p) => { p.reminderTime = ev.target.value || "18:00"; });
+    renderMissionSettings(getActiveProfile());
+  });
+
+  // avisos de missão
+  document.getElementById("enableAlertsBtn").addEventListener("click", () => enableMissionAlerts(getActiveProfile()));
+  document.getElementById("testAlertBtn").addEventListener("click", () => sendTestAlert(getActiveProfile()));
+  document.getElementById("pauseAlertsBtn").addEventListener("click", () => pauseMissionAlerts(getActiveProfile()));
 
   // histórico: navegação de semanas
   document.getElementById("weekPrevBtn").addEventListener("click", () => {

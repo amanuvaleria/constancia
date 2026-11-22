@@ -1,0 +1,9 @@
+{
+  "name": "constancia-push-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend minimo (Vercel Functions) para avisos de missao via Web Push do app Constancia.",
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}

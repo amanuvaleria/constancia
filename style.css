@@ -268,3 +268,113 @@ button { font-family: inherit; }
   .water-buttons { grid-template-columns: 1fr 1fr; }
   .brand h1 { font-size: 1.1rem; }
 }
+
+/* ---------- missão / chefe ---------- */
+.mission-card {
+  background: linear-gradient(160deg, #1b2a22, var(--card));
+  border-color: var(--accent);
+}
+.mission-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.mission-arc { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px; }
+.btn-link {
+  background: transparent; border: none; color: var(--accent);
+  font-size: 0.8rem; padding: 4px; cursor: pointer;
+}
+.mission-title { margin: 0 0 12px; font-size: 1.15rem; }
+
+.boss-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.boss-emoji { font-size: 2.2rem; transition: transform 0.25s; }
+.hero-emoji { font-size: 1.8rem; transition: transform 0.25s; }
+.boss-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.boss-info small { color: var(--muted); }
+.boss-hp-bar {
+  height: 10px; border-radius: 8px; background: #121a22;
+  overflow: hidden; border: 1px solid var(--card-border);
+}
+.boss-hp-fill { height: 100%; background: linear-gradient(90deg, #ef4444, #f59e0b); transition: width 0.3s; }
+.boss-hp-fill.defeated { background: var(--accent); }
+
+.boss-emoji.shake { animation: bossShake 0.6s ease; }
+.hero-emoji.attack { animation: heroAttack 0.6s ease; }
+@keyframes bossShake {
+  0%, 100% { transform: translateX(0) scale(1); }
+  20% { transform: translateX(-6px) scale(0.96); }
+  40% { transform: translateX(6px) scale(0.96); }
+  60% { transform: translateX(-4px) scale(1.02); }
+  80% { transform: translateX(4px) scale(1.02); }
+}
+@keyframes heroAttack {
+  0% { transform: translateX(0) rotate(0deg); }
+  30% { transform: translateX(14px) rotate(-10deg); }
+  60% { transform: translateX(-4px) rotate(5deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+.mission-status { color: var(--muted); font-size: 0.85rem; margin: 0 0 12px; }
+.btn-big { width: 100%; padding: 16px; font-size: 1.05rem; }
+.mission-card.victory .boss-emoji { filter: grayscale(1) brightness(0.6); }
+
+/* ---------- modal de história ---------- */
+.story-overlay {
+  position: fixed; inset: 0;
+  background: rgba(5, 8, 11, 0.88);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; z-index: 50;
+}
+.story-overlay.hidden { display: none; }
+.story-card {
+  background: var(--card);
+  border: 1px solid var(--accent);
+  border-radius: 18px;
+  padding: 20px;
+  max-width: 440px;
+  width: 100%;
+}
+.story-location { color: var(--accent); font-size: 0.78rem; text-transform: uppercase; margin: 0 0 10px; }
+.story-dialogue { min-height: 90px; margin-bottom: 14px; }
+.story-dialogue p { margin: 0 0 10px; line-height: 1.5; }
+.story-dialogue strong { color: var(--accent); }
+.story-reward {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.story-reward.hidden { display: none; }
+.reward-item { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.reward-emoji { font-size: 1.3rem; }
+
+/* ---------- missão & avisos (perfis) ---------- */
+.field-label { display: block; color: var(--muted); font-size: 0.82rem; margin: 14px 0 6px; }
+.stepper { display: flex; align-items: center; gap: 14px; }
+.stepper span { font-size: 1.3rem; font-weight: 700; min-width: 24px; text-align: center; }
+.day-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.day-chip {
+  background: var(--bg-elev);
+  border: 1px solid var(--card-border);
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.day-chip.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.time-input {
+  width: 100%;
+  background: var(--bg-elev);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 1rem;
+}
+.reminder-buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+
