@@ -686,6 +686,16 @@ function renderMission(profile, entry) {
 
   card.classList.toggle("victory", boss.waiting);
 
+  // círculos de progresso (um por treino da meta semanal)
+  const circlesEl = document.getElementById("hitCircles");
+  circlesEl.innerHTML = "";
+  for (let i = 0; i < boss.goal; i++) {
+    const c = document.createElement("span");
+    c.className = "hit-circle" + (i < boss.hits ? " filled" : "");
+    c.textContent = "✓";
+    circlesEl.appendChild(c);
+  }
+
   const statusEl = document.getElementById("missionStatusText");
   const btn = document.getElementById("btn-treino");
   const today = todayDate();
@@ -693,13 +703,13 @@ function renderMission(profile, entry) {
 
   if (entry.exercicio) {
     statusEl.textContent = "Treino de hoje concluído 💪 Golpe já aplicado no chefe desta semana.";
-    btn.textContent = "Treino concluído hoje ✓";
+    btn.innerHTML = "<span>✅</span> Treino concluído hoje";
   } else if (!planned) {
     statusEl.textContent = "😌 Dia de recuperação. Treinar hoje também conta para a meta, se quiser.";
-    btn.textContent = "Concluí meu treino";
+    btn.innerHTML = "<span>🎧</span> Concluí meu treino";
   } else {
     statusEl.textContent = "Ainda sem treino registrado hoje.";
-    btn.textContent = "Concluí meu treino";
+    btn.innerHTML = "<span>🎧</span> Concluí meu treino";
   }
 
   // cenas: vitória pendente tem prioridade sobre a intro do próximo capítulo
@@ -715,6 +725,8 @@ function setToggleUI(habit, done, doneText, pendingText) {
   const card = document.querySelector(`.toggle-card[data-habit="${habit}"]`);
   card.classList.toggle("done", done);
   document.getElementById(`${habit}StatusText`).textContent = done ? doneText : pendingText;
+  const chip = document.getElementById(`${habit}Chip`);
+  if (chip) chip.textContent = done ? "✓ Hoje" : "Pendente";
 }
 
 // ---------------------------------------------------------------
@@ -980,9 +992,10 @@ function renderCharacterMini(profile) {
   const xp = computeXp(profile.id);
   const level = computeLevel(xp);
   const into = xpIntoLevel(xp);
-  document.getElementById("characterMiniLevel").textContent = `Nv. ${level}`;
+  document.getElementById("characterMiniLevel").textContent = `Nível ${level}`;
   document.getElementById("characterMiniXpFill").style.width = `${into}%`;
-  document.getElementById("characterMiniXpText").textContent = `${into}/100 XP para o próximo nível`;
+  const xpPill = document.getElementById("xpPillText");
+  if (xpPill) xpPill.textContent = `${into} / 100`;
 }
 
 function renderCharacterPage() {
@@ -995,7 +1008,7 @@ function renderCharacterPage() {
   const xp = computeXp(profile.id);
   const level = computeLevel(xp);
   const into = xpIntoLevel(xp);
-  document.getElementById("characterBigLevel").textContent = `Nv. ${level}`;
+  document.getElementById("characterBigLevel").textContent = `Nível ${level}`;
   document.getElementById("characterBigXpFill").style.width = `${into}%`;
   document.getElementById("characterBigXpText").textContent = `${into}/100 XP`;
 
@@ -1156,8 +1169,6 @@ function renderProfiles() {
 
     list.appendChild(row);
   });
-
-  document.getElementById("profileChip").textContent = getActiveProfile().name;
 
   renderMissionSettings(getActiveProfile());
 }
@@ -1364,6 +1375,8 @@ function goToPage(pageName) {
   document.querySelectorAll(".nav-btn").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.page === pageName);
   });
+  document.body.classList.toggle("character-page-active", pageName === "personagem");
+  document.body.dataset.page = pageName;
   if (pageName === "historico") renderHistory();
   if (pageName === "perfis") renderProfiles();
   if (pageName === "personagem") renderCharacterPage();
@@ -1448,7 +1461,9 @@ function init() {
   document.querySelectorAll(".nav-btn").forEach((btn) => {
     btn.addEventListener("click", () => goToPage(btn.dataset.page));
   });
-  document.getElementById("profileChip").addEventListener("click", () => goToPage("perfis"));
+  // calendário (Hoje) abre o Histórico; botão "voltar" no Histórico volta pra Hoje
+  document.getElementById("calendarBtn").addEventListener("click", () => goToPage("historico"));
+  document.getElementById("historyBackBtn").addEventListener("click", () => goToPage("hoje"));
 
   // água (hoje)
   document.querySelectorAll('#card-agua [data-add]').forEach((btn) => {

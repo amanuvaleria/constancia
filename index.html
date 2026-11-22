@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#11181f">
+<meta name="theme-color" content="#111114">
 <title>Constância</title>
 <meta name="description" content="Constância — mantenha a frequência na academia e seus hábitos diários.">
 
@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Constância">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./style.css?v=8">
 </head>
 <body>
 
@@ -22,27 +22,31 @@
   <!-- ===================== HEADER ===================== -->
   <header class="topbar">
     <div class="brand">
-      <span class="brand-dot"></span>
       <h1>Constância</h1>
     </div>
-    <button id="profileChip" class="profile-chip" title="Trocar perfil">—</button>
+    <button id="calendarBtn" class="icon-btn" title="Histórico" aria-label="Abrir histórico">📅</button>
   </header>
 
   <!-- ===================== PÁGINA: HOJE ===================== -->
   <main id="page-hoje" class="page active">
 
+    <div class="hoje-head">
+      <h2 class="screen-title">Hoje</h2>
+      <div class="xp-pill">
+        <span class="xp-pill-label">XP</span>
+        <span id="xpPillText">0 / 100</span>
+      </div>
+    </div>
     <p class="date-label" id="todayDateLabel"></p>
 
     <section class="card character-mini-card" id="characterMiniCard">
       <div class="character-mini-avatar" id="characterMiniAvatar"></div>
       <div class="character-mini-info">
         <strong id="characterMiniName">Avatar</strong>
-        <div class="xp-row">
-          <span class="level-badge" id="characterMiniLevel">Nv. 1</span>
-          <div class="xp-bar"><div class="xp-fill" id="characterMiniXpFill"></div></div>
-        </div>
-        <small id="characterMiniXpText">0/100 XP para o próximo nível</small>
+        <span class="level-huge" id="characterMiniLevel">Nível 1</span>
+        <div class="xp-bar"><div class="xp-fill" id="characterMiniXpFill"></div></div>
       </div>
+      <span class="diag-stripe"></span>
     </section>
 
     <section class="summary-card">
@@ -62,22 +66,23 @@
         <span class="mission-arc" id="missionArcTitle">Capítulo 1 · A Torre do Impulso</span>
         <button class="btn-link" id="missionStoryBtn">📖 Saga</button>
       </div>
-      <h2 class="mission-title">Treinar na academia</h2>
 
-      <div class="boss-row">
+      <span class="boss-tag">Chefe da semana</span>
+      <h2 class="boss-title" id="bossName">Guardião da Inércia</h2>
+
+      <div class="boss-illustration">
         <span class="boss-emoji" id="bossEmoji">🗿</span>
-        <div class="boss-info">
-          <strong id="bossName">Guardião da Inércia</strong>
-          <div class="boss-hp-bar"><div class="boss-hp-fill" id="bossHpFill"></div></div>
-          <small id="bossProgressText">0 de 3 treinos · Faltam 3 golpes</small>
-        </div>
         <span class="hero-emoji" id="heroEmoji">🤺</span>
         <span class="impact-slash" id="impactSlash"></span>
       </div>
 
+      <small id="bossProgressText">0 de 3 treinos · Faltam 3 golpes</small>
+      <div class="hit-circles" id="hitCircles"></div>
+      <div class="boss-hp-bar hidden"><div class="boss-hp-fill" id="bossHpFill"></div></div>
+
       <p class="mission-status" id="missionStatusText">Ainda sem treino registrado hoje.</p>
 
-      <button class="btn btn-primary btn-big" id="btn-treino">Concluí meu treino</button>
+      <button class="btn btn-primary btn-big" id="btn-treino"><span>🎧</span> Concluí meu treino</button>
     </section>
 
     <!-- Água -->
@@ -115,7 +120,8 @@
           <strong>Fibras</strong>
           <small id="fibrasStatusText">Comi fibras hoje</small>
         </span>
-        <span class="habit-done-mark">✓</span>
+        <span class="status-chip" id="fibrasChip">Hoje</span>
+        <span class="row-caret">›</span>
       </button>
     </section>
 
@@ -127,7 +133,8 @@
           <strong>Dieta</strong>
           <small id="dietaStatusText">Segui meu plano alimentar hoje</small>
         </span>
-        <span class="habit-done-mark">✓</span>
+        <span class="status-chip" id="dietaChip">Hoje</span>
+        <span class="row-caret">›</span>
       </button>
     </section>
 
@@ -135,6 +142,11 @@
 
   <!-- ===================== PÁGINA: HISTÓRICO ===================== -->
   <main id="page-historico" class="page">
+
+    <div class="hoje-head">
+      <button class="icon-btn" id="historyBackBtn" aria-label="Voltar">‹</button>
+      <h2 class="screen-title">Histórico</h2>
+    </div>
 
     <section class="week-nav">
       <button class="btn btn-ghost" id="weekPrevBtn">‹ Semana anterior</button>
@@ -154,51 +166,62 @@
   </main>
 
   <!-- ===================== PÁGINA: PERSONAGEM ===================== -->
-  <main id="page-personagem" class="page">
+  <main id="page-personagem" class="page page-light">
 
-    <section class="card character-big-card">
+    <div class="hoje-head">
+      <h2 class="screen-title screen-title-dark">Personagem</h2>
+    </div>
+
+    <section class="char-hero">
+      <span class="char-hero-slash slash-1"></span>
+      <span class="char-hero-slash slash-2"></span>
       <div class="character-big-avatar" id="characterBigAvatar"></div>
-      <div class="character-big-info">
+      <div class="char-hero-info">
         <input type="text" id="characterNameInput" class="character-name-input" maxlength="18" placeholder="Nome do personagem">
-        <div class="xp-row">
-          <span class="level-badge" id="characterBigLevel">Nv. 1</span>
-          <div class="xp-bar"><div class="xp-fill" id="characterBigXpFill"></div></div>
-        </div>
+        <span class="level-huge level-huge-dark" id="characterBigLevel">Nível 1</span>
+        <div class="xp-bar"><div class="xp-fill" id="characterBigXpFill"></div></div>
         <small id="characterBigXpText">0/100 XP</small>
         <small id="characterNextUnlockText" class="next-unlock-text"></small>
       </div>
     </section>
 
-    <section class="card">
-      <h2 class="section-title">Personagens prontos</h2>
+    <section class="card card-light">
+      <h2 class="section-title section-title-dark">Equipamentos</h2>
+      <div class="item-grid" id="itemGrid"></div>
+    </section>
+
+    <section class="card card-light">
+      <h2 class="section-title section-title-dark">Personagens prontos</h2>
       <div class="preset-row" id="presetRow"></div>
     </section>
 
-    <section class="card" id="customizeCard">
-      <h2 class="section-title">Personalizar</h2>
-      <label class="field-label">Tom de pele</label>
+    <section class="card card-light" id="customizeCard">
+      <h2 class="section-title section-title-dark">Personalizar</h2>
+      <label class="field-label field-label-dark">Tom de pele</label>
       <div class="swatch-row" id="skinSwatches"></div>
-      <label class="field-label">Cor do cabelo</label>
+      <label class="field-label field-label-dark">Cor do cabelo</label>
       <div class="swatch-row" id="hairSwatches"></div>
-      <label class="field-label">Cor da roupa</label>
+      <label class="field-label field-label-dark">Cor da roupa</label>
       <div class="swatch-row" id="outfitSwatches"></div>
-    </section>
-
-    <section class="card">
-      <h2 class="section-title">Guarda-roupa</h2>
-      <div class="item-grid" id="itemGrid"></div>
     </section>
 
   </main>
 
   <!-- ===================== PÁGINA: SAGA ===================== -->
   <main id="page-saga" class="page">
-    <p class="date-label">Acompanhe os capítulos da sua jornada</p>
+    <div class="hoje-head">
+      <h2 class="screen-title">Saga</h2>
+    </div>
+    <p class="date-label">Sua jornada de constância, em arcos épicos.</p>
     <section id="sagaList" class="saga-list"></section>
   </main>
 
   <!-- ===================== PÁGINA: PERFIS ===================== -->
   <main id="page-perfis" class="page">
+
+    <div class="hoje-head">
+      <h2 class="screen-title">Perfil</h2>
+    </div>
 
     <section class="card">
       <h2 class="section-title">Perfis</h2>
@@ -256,10 +279,7 @@
   <!-- ===================== NAV INFERIOR ===================== -->
   <nav class="bottom-nav">
     <button class="nav-btn active" data-page="hoje">
-      <span class="nav-icon">☀️</span><span>Hoje</span>
-    </button>
-    <button class="nav-btn" data-page="historico">
-      <span class="nav-icon">📅</span><span>Histórico</span>
+      <span class="nav-icon">🏠</span><span>Hoje</span>
     </button>
     <button class="nav-btn" data-page="saga">
       <span class="nav-icon">📖</span><span>Saga</span>
@@ -268,7 +288,7 @@
       <span class="nav-icon">🧑‍🎤</span><span>Personagem</span>
     </button>
     <button class="nav-btn" data-page="perfis">
-      <span class="nav-icon">👤</span><span>Perfis</span>
+      <span class="nav-icon">👤</span><span>Perfil</span>
     </button>
   </nav>
 
@@ -341,6 +361,6 @@
   </article>
 </template>
 
-<script src="./app.js"></script>
+<script src="./app.js?v=8"></script>
 </body>
 </html>
