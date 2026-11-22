@@ -666,6 +666,8 @@ function renderMission(profile, entry) {
   document.getElementById("missionArcTitle").textContent = boss.chapter.episodeLabel;
   document.getElementById("bossName").textContent = boss.waiting ? "Capítulo concluído" : boss.bossName;
   document.getElementById("bossEmoji").textContent = boss.waiting ? "✅" : boss.bossEmoji;
+  // A atleta que ataca é sempre o avatar escolhido para este perfil.
+  renderCharacterInto("heroEmoji", profile.character);
 
   const fill = document.getElementById("bossHpFill");
   fill.style.width = `${boss.waiting ? 100 : Math.max(0, Math.min(100, boss.pctHp))}%`;
@@ -1068,6 +1070,7 @@ function renderPresetRow(profile, character) {
       applyCharacterPreset(profile.id, preset);
       renderCharacterPage();
       renderCharacterMini(getActiveProfile());
+      renderMission(getActiveProfile(), getEntry(getActiveProfile().id, todayKey()));
     });
     row.appendChild(tile);
   });
