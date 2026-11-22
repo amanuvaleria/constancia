@@ -378,3 +378,113 @@ button { font-family: inherit; }
 }
 .reminder-buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 
+/* ---------- personagem: cartão compacto (Hoje) ---------- */
+.character-mini-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+}
+.character-mini-avatar { width: 56px; height: 56px; flex-shrink: 0; }
+.character-mini-avatar svg, .character-big-avatar svg { width: 100%; height: 100%; display: block; }
+.character-mini-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.character-mini-info strong { font-size: 0.95rem; }
+.character-mini-info small { color: var(--muted); font-size: 0.72rem; }
+
+.xp-row { display: flex; align-items: center; gap: 8px; }
+.level-badge {
+  background: var(--accent); color: #06260f;
+  font-size: 0.7rem; font-weight: 700;
+  border-radius: 999px; padding: 2px 9px;
+  flex-shrink: 0;
+}
+.xp-bar {
+  flex: 1; height: 8px; border-radius: 6px;
+  background: #121a22; border: 1px solid var(--card-border); overflow: hidden;
+}
+.xp-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+
+/* ---------- personagem: cartão grande (aba Personagem) ---------- */
+.character-big-card {
+  display: flex; align-items: center; gap: 16px;
+}
+.character-big-avatar { width: 110px; height: 110px; flex-shrink: 0; }
+.character-big-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.character-name-input {
+  background: transparent; border: none; border-bottom: 1px solid var(--card-border);
+  color: var(--text); font-size: 1.1rem; font-weight: 700; padding: 4px 0;
+}
+.character-big-info small { color: var(--muted); font-size: 0.78rem; }
+.next-unlock-text { color: var(--accent) !important; }
+
+.swatch-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 4px; }
+.swatch {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.swatch.selected { border-color: var(--text); box-shadow: 0 0 0 2px var(--accent); }
+
+.item-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.item-tile {
+  background: var(--bg-elev);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+}
+.item-tile .item-emoji { font-size: 1.6rem; display: block; margin-bottom: 4px; }
+.item-tile .item-name { font-size: 0.72rem; color: var(--text); display: block; }
+.item-tile .item-level { font-size: 0.68rem; color: var(--muted); }
+.item-tile.locked { opacity: 0.45; cursor: not-allowed; }
+.item-tile.equipped { border-color: var(--accent); background: var(--accent-dim); }
+
+/* ---------- personagem: avatar SVG (cores via CSS vars) ---------- */
+.char-svg .char-skin { fill: var(--char-skin, #e0ac69); }
+.char-svg .char-hair { fill: var(--char-hair, #2b2b2b); }
+.char-svg .char-outfit { fill: var(--char-outfit, #16a34a); }
+.char-svg .char-shoe { fill: var(--char-shoe, #f3f6f4); }
+.char-svg .char-jacket { fill: #1f2937; }
+.char-svg .char-headphones { display: none; }
+.char-svg.eq-headphones .char-headphones { display: block; }
+.char-svg .char-jacket-layer { display: none; }
+.char-svg.eq-jacket .char-jacket-layer { display: block; }
+.char-svg .char-bottle { display: none; }
+.char-svg.eq-bottle .char-bottle,
+.char-svg.pose-water .char-bottle { display: block; }
+
+.char-rig { transform-origin: 80px 110px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .char-svg.pose-water .char-rig { animation: poseWater 0.7s ease; }
+  .char-svg.pose-victory .char-rig { animation: poseVictory 0.7s ease; }
+  .char-svg.pose-celebrate .char-rig { animation: poseCelebrate 0.7s ease; }
+  .char-svg.pose-water .char-arm-right,
+  .char-svg.pose-victory .char-arm-right,
+  .char-svg.pose-victory .char-arm-left,
+  .char-svg.pose-celebrate .char-arm-right {
+    animation: armUp 0.7s ease;
+    transform-origin: center top;
+  }
+}
+@keyframes poseWater { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+@keyframes poseVictory { 0%,100% { transform: translateY(0) scale(1); } 40% { transform: translateY(-10px) scale(1.05); } }
+@keyframes poseCelebrate { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
+@keyframes armUp { 0%,100% { transform: rotate(0deg); } 40% { transform: rotate(-70deg); } }
+
+/* ---------- toast de nível (celebração breve) ---------- */
+.level-toast {
+  position: fixed; left: 50%; bottom: 90px;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--accent); color: #06260f;
+  font-weight: 700; font-size: 0.9rem;
+  padding: 12px 20px; border-radius: 999px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 60;
+  white-space: nowrap;
+}
+.level-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+

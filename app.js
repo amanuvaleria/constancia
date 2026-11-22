@@ -113,6 +113,33 @@ function defaultStoryState() {
   return { introSeen: false, bossDefeated: false, victorySeen: false, badges: [], accessories: [] };
 }
 
+// ---------------------------------------------------------------
+// Personagem: cores, itens desbloqueáveis e estado padrão
+// ---------------------------------------------------------------
+
+const SKIN_PRESETS = ["#8d5a3c", "#c68642", "#e0ac69", "#f1c27d", "#ffdbac"];
+const HAIR_PRESETS = ["#1b1b1b", "#3b2412", "#6b3f1d", "#a65e2e", "#d9a441", "#e8e8e8"];
+const OUTFIT_PRESETS = ["#16a34a", "#2563eb", "#db2777", "#f59e0b", "#7c3aed", "#334155"];
+
+// Catálogo de itens equipáveis, desbloqueados por nível do personagem
+const ITEM_CATALOG = [
+  { id: "tenis_branco", type: "shoe", name: "Tênis branco", unlockLevel: 1, emoji: "👟", color: "#f3f6f4" },
+  { id: "tenis_verde", type: "shoe", name: "Tênis verde", unlockLevel: 2, emoji: "🟢", color: "#22c55e" },
+  { id: "fones", type: "headphones", name: "Fones de ouvido", unlockLevel: 3, emoji: "🎧" },
+  { id: "jaqueta", type: "jacket", name: "Jaqueta corta-vento", unlockLevel: 4, emoji: "🧥" },
+  { id: "garrafinha_dourada", type: "bottle", name: "Garrafinha dourada", unlockLevel: 5, emoji: "🏅" },
+];
+
+function defaultCharacter(profileName) {
+  return {
+    name: profileName || "Avatar",
+    skin: SKIN_PRESETS[2],
+    hair: HAIR_PRESETS[0],
+    outfit: OUTFIT_PRESETS[0],
+    equipped: { shoe: "tenis_branco", headphones: false, jacket: false, bottle: false },
+  };
+}
+
 // Preenche campos novos em perfis antigos sem apagar o que já existe
 function ensureProfileDefaults(profile) {
   if (profile.weeklyGoal == null) profile.weeklyGoal = 3;
@@ -120,6 +147,9 @@ function ensureProfileDefaults(profile) {
   if (!profile.reminderTime) profile.reminderTime = "18:00";
   if (profile.reminderEnabled == null) profile.reminderEnabled = false;
   if (!profile.story) profile.story = defaultStoryState();
+  if (!profile.character) profile.character = defaultCharacter(profile.name);
+  if (!profile.character.equipped) profile.character.equipped = { shoe: "tenis_branco", headphones: false, jacket: false, bottle: false };
+  if (profile.character.lastSeenLevel == null) profile.character.lastSeenLevel = 1;
   return profile;
 }
 
@@ -224,6 +254,28 @@ function getEntry(profileId, dateKey) {
   return data[dateKey] ? { ...defaultEntry(), ...data[dateKey] } : defaultEntry();
 }
 
+// Verifica se o XP cruzou um novo nível desde a última vez que o app
+// mostrou isso, e dispara o toast de celebração com o item desbloqueado.
+function checkLevelUp(profileId) {
+  const profiles = loadProfiles();
+  const profile = profiles.find((p) => p.id === profileId);
+  if (!profile) return;
+  const xp = computeXp(profileId);
+  const newLevel = computeLevel(xp);
+  if (newLevel > profile.character.lastSeenLevel) {
+    const unlocked = ITEM_CATALOG.find((it) => it.unlockLevel === newLevel) || null;
+    profile.character.lastSeenLevel = newLevel;
+    saveProfiles(profiles);
+    showLevelUpToast(newLevel, unlocked);
+  } else if (newLevel < profile.character.lastSeenLevel) {
+    // corrigir um registro pode reduzir o XP; não perde o nível já visto
+    // (preserva o progresso conquistado), só sincroniza o contador interno
+    // se o XP real ficou bem abaixo do nível salvo.
+    profile.character.lastSeenLevel = Math.max(newLevel, 1);
+    saveProfiles(profiles);
+  }
+}
+
 function mutateEntry(profileId, dateKey, mutator) {
   const data = loadData(profileId);
   const entry = data[dateKey] ? { ...defaultEntry(), ...data[dateKey] } : defaultEntry();
@@ -231,6 +283,7 @@ function mutateEntry(profileId, dateKey, mutator) {
   data[dateKey] = entry;
   saveData(profileId, data);
   checkBossVictory(profileId);
+  checkLevelUp(profileId);
   onDataChanged();
 }
 
@@ -319,21 +372,125 @@ function checkBossVictory(profileId) {
   }
 }
 
-// XP simples: cada dia com água/fibras/dieta concluídos dá pontos.
-// Recalculado sempre a partir do histórico completo (sem contador manual).
+// XP: cada hábito concluído no dia vale 25 XP (água só ao bater 3L).
+// Sempre recalculado a partir do histórico completo — nunca um contador
+// manual — então marcar/desmarcar/marcar de novo dá sempre o mesmo total,
+// e corrigir um dia passado ajusta o XP na hora.
 function computeXp(profileId) {
   const data = loadData(profileId);
   let xp = 0;
-  Object.values(data).forEach((entry) => {
-    if (isAguaDone({ ...defaultEntry(), ...entry })) xp += 10;
-    if (entry.fibras) xp += 10;
-    if (entry.dieta) xp += 10;
+  Object.values(data).forEach((raw) => {
+    const entry = { ...defaultEntry(), ...raw };
+    if (isAguaDone(entry)) xp += 25;
+    if (entry.exercicio) xp += 25;
+    if (entry.fibras) xp += 25;
+    if (entry.dieta) xp += 25;
   });
   return xp;
 }
 
 function computeLevel(xp) {
   return Math.floor(xp / 100) + 1;
+}
+
+function xpIntoLevel(xp) {
+  return xp % 100;
+}
+
+function nextUnlockForLevel(level) {
+  return ITEM_CATALOG.find((it) => it.unlockLevel > level) || null;
+}
+
+function unlockedItems(level) {
+  return ITEM_CATALOG.filter((it) => it.unlockLevel <= level);
+}
+
+// ---------------------------------------------------------------
+// Avatar SVG (ilustração original em vetor, recolorível por CSS vars)
+// ---------------------------------------------------------------
+
+function characterSvgMarkup(character) {
+  const eq = character.equipped || {};
+  const shoeItem = ITEM_CATALOG.find((i) => i.id === eq.shoe);
+  const shoeColor = shoeItem ? shoeItem.color : "#f3f6f4";
+  const classes = [
+    "char-svg",
+    eq.headphones ? "eq-headphones" : "",
+    eq.jacket ? "eq-jacket" : "",
+    eq.bottle ? "eq-bottle" : "",
+  ].filter(Boolean).join(" ");
+
+  return `
+<svg class="${classes}" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg"
+     style="--char-skin:${character.skin};--char-hair:${character.hair};--char-outfit:${character.outfit};--char-shoe:${shoeColor}">
+  <ellipse cx="80" cy="188" rx="36" ry="7" fill="#000" opacity="0.3"/>
+  <g class="char-rig">
+    <!-- pernas / tenis -->
+    <rect x="58" y="138" width="18" height="38" rx="8" class="char-skin" opacity="0.92"/>
+    <rect x="84" y="138" width="18" height="38" rx="8" class="char-skin" opacity="0.92"/>
+    <ellipse cx="66" cy="178" rx="13" ry="7" class="char-shoe"/>
+    <ellipse cx="94" cy="178" rx="13" ry="7" class="char-shoe"/>
+
+    <!-- braco esquerdo -->
+    <rect class="char-skin char-arm-left" x="34" y="92" width="18" height="46" rx="9"/>
+    <!-- tronco / roupa -->
+    <rect x="48" y="84" width="64" height="58" rx="20" class="char-outfit"/>
+    <rect x="48" y="84" width="64" height="58" rx="20" class="char-jacket char-jacket-layer"/>
+    <!-- braco direito -->
+    <rect class="char-skin char-arm-right" x="108" y="92" width="18" height="46" rx="9"/>
+
+    <!-- garrafinha na mao direita -->
+    <g class="char-bottle">
+      <rect x="112" y="70" width="12" height="26" rx="4" fill="#38bdf8"/>
+      <rect x="115" y="64" width="6" height="8" rx="2" fill="#0ea5e9"/>
+    </g>
+
+    <!-- cabeca -->
+    <circle cx="80" cy="54" r="30" class="char-skin"/>
+    <!-- cabelo (rabo de cavalo + franja) -->
+    <path d="M50 44 Q48 10 80 12 Q112 10 110 44 Q110 20 80 24 Q50 20 50 44Z" class="char-hair"/>
+    <path d="M46 40 Q30 60 40 92 Q50 70 54 46Z" class="char-hair"/>
+    <!-- fones -->
+    <g class="char-headphones">
+      <path d="M50 46 Q80 16 110 46" fill="none" stroke="#1f2937" stroke-width="6"/>
+      <rect x="42" y="42" width="12" height="18" rx="5" fill="#1f2937"/>
+      <rect x="106" y="42" width="12" height="18" rx="5" fill="#1f2937"/>
+    </g>
+    <!-- rosto -->
+    <circle cx="70" cy="54" r="3" fill="#1b1b1b"/>
+    <circle cx="90" cy="54" r="3" fill="#1b1b1b"/>
+    <path d="M70 64 Q80 70 90 64" fill="none" stroke="#1b1b1b" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+</svg>`.trim();
+}
+
+function renderCharacterInto(containerId, character, extraClasses) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = characterSvgMarkup(character);
+  if (extraClasses) {
+    const svg = el.querySelector("svg");
+    svg.classList.add(...extraClasses.split(" "));
+  }
+}
+
+// Dispara uma pose curta no(s) avatar(es) visíveis (some sozinha; respeita
+// a preferência do sistema por movimento reduzido, pois a animação CSS
+// só existe dentro de @media (prefers-reduced-motion: no-preference)).
+function playCharacterPose(pose) {
+  document.querySelectorAll(".char-svg").forEach((svg) => {
+    svg.classList.add(pose);
+    setTimeout(() => svg.classList.remove(pose), 750);
+  });
+}
+
+function showLevelUpToast(level, unlockedItem) {
+  const toast = document.getElementById("levelToast");
+  toast.textContent = unlockedItem
+    ? `🎉 Nível ${level}! ${unlockedItem.emoji} ${unlockedItem.name} desbloqueado`
+    : `🎉 Nível ${level} alcançado!`;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2600);
 }
 
 // ---------------------------------------------------------------
@@ -353,6 +510,8 @@ function renderToday() {
   const entry = getEntry(profile.id, key);
 
   document.getElementById("todayDateLabel").textContent = formatLongDate(todayDate());
+
+  renderCharacterMini(profile);
 
   // água
   const total = waterTotal(entry);
@@ -685,6 +844,117 @@ function playAttackAnimation() {
 }
 
 // ---------------------------------------------------------------
+// Render: Personagem
+// ---------------------------------------------------------------
+
+function renderCharacterMini(profile) {
+  renderCharacterInto("characterMiniAvatar", profile.character);
+  document.getElementById("characterMiniName").textContent = profile.character.name;
+  const xp = computeXp(profile.id);
+  const level = computeLevel(xp);
+  const into = xpIntoLevel(xp);
+  document.getElementById("characterMiniLevel").textContent = `Nv. ${level}`;
+  document.getElementById("characterMiniXpFill").style.width = `${into}%`;
+  document.getElementById("characterMiniXpText").textContent = `${into}/100 XP para o próximo nível`;
+}
+
+function renderCharacterPage() {
+  const profile = getActiveProfile();
+  const character = profile.character;
+
+  renderCharacterInto("characterBigAvatar", character);
+  document.getElementById("characterNameInput").value = character.name;
+
+  const xp = computeXp(profile.id);
+  const level = computeLevel(xp);
+  const into = xpIntoLevel(xp);
+  document.getElementById("characterBigLevel").textContent = `Nv. ${level}`;
+  document.getElementById("characterBigXpFill").style.width = `${into}%`;
+  document.getElementById("characterBigXpText").textContent = `${into}/100 XP`;
+
+  const next = nextUnlockForLevel(level);
+  document.getElementById("characterNextUnlockText").textContent = next
+    ? `Faltam ${100 - into} XP para o nível ${level + 1} — desbloqueia ${next.emoji} ${next.name}`
+    : "Todos os itens do guarda-roupa já foram desbloqueados!";
+
+  renderSwatchRow("skinSwatches", SKIN_PRESETS, character.skin, (color) => {
+    updateProfile(profile.id, (p) => { p.character.skin = color; });
+    renderCharacterPage();
+    renderCharacterMini(getActiveProfile());
+  });
+  renderSwatchRow("hairSwatches", HAIR_PRESETS, character.hair, (color) => {
+    updateProfile(profile.id, (p) => { p.character.hair = color; });
+    renderCharacterPage();
+    renderCharacterMini(getActiveProfile());
+  });
+  renderSwatchRow("outfitSwatches", OUTFIT_PRESETS, character.outfit, (color) => {
+    updateProfile(profile.id, (p) => { p.character.outfit = color; });
+    renderCharacterPage();
+    renderCharacterMini(getActiveProfile());
+  });
+
+  renderItemGrid(profile, level);
+}
+
+function renderSwatchRow(containerId, colors, selected, onPick) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = "";
+  colors.forEach((color) => {
+    const sw = document.createElement("button");
+    sw.type = "button";
+    sw.className = "swatch" + (color === selected ? " selected" : "");
+    sw.style.background = color;
+    sw.addEventListener("click", () => onPick(color));
+    el.appendChild(sw);
+  });
+}
+
+function renderItemGrid(profile, level) {
+  const grid = document.getElementById("itemGrid");
+  grid.innerHTML = "";
+  ITEM_CATALOG.forEach((item) => {
+    const locked = item.unlockLevel > level;
+    const equippedBool = item.type === "shoe"
+      ? profile.character.equipped.shoe === item.id
+      : !!profile.character.equipped[item.type] && getEquippedIdForType(profile, item.type) === item.id;
+
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "item-tile" + (locked ? " locked" : "") + (equippedBool ? " equipped" : "");
+    tile.innerHTML = `
+      <span class="item-emoji">${item.emoji}</span>
+      <span class="item-name">${item.name}</span>
+      <span class="item-level">${locked ? `Nível ${item.unlockLevel}` : (equippedBool ? "Equipado" : "Toque para equipar")}</span>
+    `;
+    if (!locked) {
+      tile.addEventListener("click", () => toggleEquip(profile.id, item));
+    }
+    grid.appendChild(tile);
+  });
+}
+
+// Para itens boolean (fones/jaqueta/garrafinha) guardamos um id "fixo";
+// como só existe 1 opção de cada tipo por enquanto, equipped[type]=true
+// já identifica esse item. Isso resolve o id pra comparação no grid.
+function getEquippedIdForType(profile, type) {
+  if (!profile.character.equipped[type]) return null;
+  const item = ITEM_CATALOG.find((i) => i.type === type);
+  return item ? item.id : null;
+}
+
+function toggleEquip(profileId, item) {
+  updateProfile(profileId, (p) => {
+    if (item.type === "shoe") {
+      p.character.equipped.shoe = item.id;
+    } else {
+      p.character.equipped[item.type] = !p.character.equipped[item.type];
+    }
+  });
+  renderCharacterPage();
+  renderCharacterMini(getActiveProfile());
+}
+
+// ---------------------------------------------------------------
 // Render: página "Perfis"
 // ---------------------------------------------------------------
 
@@ -932,6 +1202,7 @@ function goToPage(pageName) {
   });
   if (pageName === "historico") renderHistory();
   if (pageName === "perfis") renderProfiles();
+  if (pageName === "personagem") renderCharacterPage();
 }
 
 // ---------------------------------------------------------------
@@ -959,6 +1230,7 @@ function init() {
   document.querySelectorAll('#card-agua [data-add]').forEach((btn) => {
     btn.addEventListener("click", () => {
       addWater(getActiveProfile().id, todayKey(), Number(btn.dataset.add));
+      playCharacterPose("pose-water");
     });
   });
   document.getElementById("aguaUndoBtn").addEventListener("click", () => {
@@ -974,7 +1246,10 @@ function init() {
   });
   document.getElementById("aguaCustomConfirm").addEventListener("click", () => {
     const v = Number(document.getElementById("aguaCustomInput").value);
-    if (v > 0) addWater(getActiveProfile().id, todayKey(), v);
+    if (v > 0) {
+      addWater(getActiveProfile().id, todayKey(), v);
+      playCharacterPose("pose-water");
+    }
     document.getElementById("aguaCustomRow").classList.add("hidden");
     document.getElementById("aguaCustomInput").value = "";
   });
@@ -986,12 +1261,28 @@ function init() {
     const before = getEntry(profileId, key).exercicio;
     toggleHabit(profileId, key, "exercicio");
     const after = getEntry(profileId, key).exercicio;
-    if (!before && after) playAttackAnimation();
+    if (!before && after) {
+      playAttackAnimation();
+      playCharacterPose("pose-victory");
+    }
   });
   ["fibras", "dieta"].forEach((habit) => {
     document.getElementById(`btn-${habit}`).addEventListener("click", () => {
-      toggleHabit(getActiveProfile().id, todayKey(), habit);
+      const profileId = getActiveProfile().id;
+      const key = todayKey();
+      const before = getEntry(profileId, key)[habit];
+      toggleHabit(profileId, key, habit);
+      const after = getEntry(profileId, key)[habit];
+      if (!before && after) playCharacterPose("pose-celebrate");
     });
+  });
+
+  // personagem: nome
+  document.getElementById("characterNameInput").addEventListener("change", (ev) => {
+    const profile = getActiveProfile();
+    const name = ev.target.value.trim() || "Avatar";
+    updateProfile(profile.id, (p) => { p.character.name = name; });
+    renderCharacterMini(getActiveProfile());
   });
 
   // história: botão "ver história" e fechar modal

@@ -8,7 +8,7 @@
 <meta name="description" content="Constância — mantenha a frequência na academia e seus hábitos diários.">
 
 <link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-180.png">
 <link rel="icon" href="./icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -32,6 +32,18 @@
   <main id="page-hoje" class="page active">
 
     <p class="date-label" id="todayDateLabel"></p>
+
+    <section class="card character-mini-card" id="characterMiniCard">
+      <div class="character-mini-avatar" id="characterMiniAvatar"></div>
+      <div class="character-mini-info">
+        <strong id="characterMiniName">Avatar</strong>
+        <div class="xp-row">
+          <span class="level-badge" id="characterMiniLevel">Nv. 1</span>
+          <div class="xp-bar"><div class="xp-fill" id="characterMiniXpFill"></div></div>
+        </div>
+        <small id="characterMiniXpText">0/100 XP para o próximo nível</small>
+      </div>
+    </section>
 
     <section class="summary-card">
       <div class="summary-count">
@@ -140,6 +152,39 @@
 
   </main>
 
+  <!-- ===================== PÁGINA: PERSONAGEM ===================== -->
+  <main id="page-personagem" class="page">
+
+    <section class="card character-big-card">
+      <div class="character-big-avatar" id="characterBigAvatar"></div>
+      <div class="character-big-info">
+        <input type="text" id="characterNameInput" class="character-name-input" maxlength="18" placeholder="Nome do personagem">
+        <div class="xp-row">
+          <span class="level-badge" id="characterBigLevel">Nv. 1</span>
+          <div class="xp-bar"><div class="xp-fill" id="characterBigXpFill"></div></div>
+        </div>
+        <small id="characterBigXpText">0/100 XP</small>
+        <small id="characterNextUnlockText" class="next-unlock-text"></small>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Personalizar</h2>
+      <label class="field-label">Tom de pele</label>
+      <div class="swatch-row" id="skinSwatches"></div>
+      <label class="field-label">Cor do cabelo</label>
+      <div class="swatch-row" id="hairSwatches"></div>
+      <label class="field-label">Cor da roupa</label>
+      <div class="swatch-row" id="outfitSwatches"></div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Guarda-roupa</h2>
+      <div class="item-grid" id="itemGrid"></div>
+    </section>
+
+  </main>
+
   <!-- ===================== PÁGINA: PERFIS ===================== -->
   <main id="page-perfis" class="page">
 
@@ -184,7 +229,7 @@
         Cada iPhone (ou cada navegador) tem seu próprio histórico — os dados
         não sincronizam automaticamente entre aparelhos.
       </p>
-      <h3 class="section-subtitle">Adicionar à Tela de Início</h3>
+      <h3 class="section-subtitle">Como adicionar à Tela de Início</h3>
       <p class="settings-note">
         No Safari do iPhone: toque em <strong>Compartilhar</strong> (ícone de
         quadrado com seta) e depois em <strong>“Adicionar à Tela de Início”</strong>.
@@ -204,12 +249,17 @@
     <button class="nav-btn" data-page="historico">
       <span class="nav-icon">📅</span><span>Histórico</span>
     </button>
+    <button class="nav-btn" data-page="personagem">
+      <span class="nav-icon">🧑‍🎤</span><span>Personagem</span>
+    </button>
     <button class="nav-btn" data-page="perfis">
       <span class="nav-icon">👤</span><span>Perfis</span>
     </button>
   </nav>
 
 </div>
+
+<div class="level-toast" id="levelToast"></div>
 
 <!-- Modal de história (cenas da arena) -->
 <div class="story-overlay hidden" id="storyOverlay">
