@@ -35,6 +35,33 @@ Pages.
   "Enviar aviso de teste" e "Pausar avisos".
 - Aviso de que os dados ficam só naquele navegador/aparelho.
 
+### Personagem (gamificação)
+- Cada perfil tem um avatar 2D cozy (ilustração própria em SVG vetorial,
+  não é foto/IA) com nome editável, tom de pele, cor de cabelo e cor de
+  roupa personalizáveis.
+- Cartão compacto na aba Hoje (nível + barra de XP) sem atrapalhar o
+  checklist; cartão grande na aba **Personagem** com o guarda-roupa.
+- Reações curtas e que somem sozinhas: levanta a garrafinha ao registrar
+  água, pose de vitória ao marcar exercício, gesto de comemoração ao
+  marcar fibras/dieta. Respeita a preferência do sistema por movimento
+  reduzido (`prefers-reduced-motion`).
+- **XP**: 25 por hábito concluído no dia (água só ao bater 3 L); os 4
+  juntos somam 100. Sempre recalculado a partir dos registros salvos —
+  nunca um contador manual — então marcar/desmarcar/marcar de novo dá o
+  mesmo total, e corrigir um dia ajusta o XP na hora.
+- A cada 100 XP sobe 1 nível, mostrando quanto falta e qual item do
+  guarda-roupa desbloqueia a seguir (tênis, fones, jaqueta, garrafinha
+  dourada). Vencer o chefe da semana (meta de treinos) dá o emblema da
+  história, contando no máximo 1 treino por data.
+
+## Marca e ícone
+
+- Símbolo (anel + chama/check) em `brand/icon-*.png`, fundo sólido,
+  cantos quadrados (o iPhone aplica o próprio recorte), sem texto —
+  180×180 (apple-touch-icon), 192×192 e 512×512 (manifest).
+- Lockup horizontal (símbolo + "Constância") em `brand/lockup-constancia.png`,
+  para uso em README/redes/cabeçalhos externos.
+
 ## Publicar no GitHub Pages
 
 1. Settings → Pages → Source: branch `main`, pasta `/ (root)`.
