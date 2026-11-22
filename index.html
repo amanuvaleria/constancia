@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Constância">
-<link rel="stylesheet" href="./style.css?v=9">
+<link rel="stylesheet" href="./style.css?v=11">
 </head>
 <body>
 
@@ -136,6 +136,22 @@
         <span class="status-chip" id="dietaChip">Hoje</span>
         <span class="row-caret">›</span>
       </button>
+    </section>
+
+    <section class="card streak-card" aria-labelledby="streakTitle">
+      <div class="streak-head">
+        <span class="streak-flame" aria-hidden="true">🔥</span>
+        <div class="streak-heading">
+          <h2 id="streakTitle">Ritmo de atleta</h2>
+          <p id="streakMessage">Registre um hábito para acender sua sequência.</p>
+        </div>
+        <div class="streak-count"><strong id="streakCurrent">0</strong><small>dias</small></div>
+      </div>
+      <div class="streak-week" id="streakWeek" aria-label="Atividade dos últimos sete dias"></div>
+      <div class="streak-footer">
+        <span id="streakMilestone">Próxima marca: 3 dias</span>
+        <span id="streakBest">Recorde: 0 dias</span>
+      </div>
     </section>
 
   </main>
@@ -361,6 +377,6 @@
   </article>
 </template>
 
-<script src="./app.js?v=9"></script>
+<script src="./app.js?v=11"></script>
 </body>
 </html>

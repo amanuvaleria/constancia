@@ -798,5 +798,54 @@ body.character-page-active .icon-btn { background: #fff; color: var(--text-dark)
 .saga-status-text { color: var(--muted); font-size: 0.82rem; margin: 0; }
 .saga-chapter-actions { display: flex; gap: 8px; }
 
+/* Sequência semanal: feedback rápido, sem alterar ou duplicar o histórico. */
+.streak-card {
+  background: linear-gradient(145deg, #24252a, #191a1e);
+  border: 1px solid #3a3c43;
+  border-left: 3px solid var(--lime);
+  padding: 14px;
+  overflow: hidden;
+}
+.streak-head { display: flex; align-items: center; gap: 10px; }
+.streak-flame {
+  width: 42px; height: 42px; flex: 0 0 42px;
+  display: grid; place-items: center;
+  border-radius: 13px;
+  background: rgba(237,56,77,.14);
+  font-size: 1.45rem;
+}
+.streak-heading { min-width: 0; flex: 1; }
+.streak-heading h2 {
+  margin: 0 0 3px; color: var(--text);
+  font: italic 900 1.05rem "Arial Narrow", Impact, sans-serif;
+}
+.streak-heading p { margin: 0; color: var(--muted); font-size: .75rem; line-height: 1.35; }
+.streak-count { display: flex; align-items: baseline; gap: 4px; color: var(--lime); }
+.streak-count strong { font-size: 1.8rem; line-height: 1; }
+.streak-count small { color: var(--muted); font-size: .7rem; }
+.streak-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px; margin: 14px 0 10px; }
+.streak-day {
+  min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px;
+  color: #777a83; font-size: .66rem;
+}
+.streak-day i {
+  width: 28px; height: 28px; display: grid; place-items: center;
+  border-radius: 50%; background: #16171a; border: 1px solid #41434a;
+  color: #777a83; font-style: normal; font-size: .85rem;
+}
+.streak-day.active { color: var(--lime); font-weight: 700; }
+.streak-day.active i { background: var(--lime); color: #17220a; border-color: var(--lime); box-shadow: 0 0 12px rgba(166,233,67,.18); }
+.streak-day.today i { outline: 2px solid rgba(237,56,77,.75); outline-offset: 2px; }
+.streak-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding-top: 9px; border-top: 1px solid #383a40;
+  color: var(--muted); font-size: .71rem;
+}
+.streak-footer span:first-child { color: var(--lime); font-weight: 700; }
+@media (max-width: 360px) {
+  .streak-day i { width: 25px; height: 25px; }
+  .streak-footer { font-size: .66rem; }
+}
+
 
 

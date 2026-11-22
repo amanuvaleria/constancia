@@ -19,6 +19,9 @@ Pages.
   livre, "Desfazer" para o último registro do dia, barra de progresso.
 - **Fibras** e **Dieta**: botões liga/desliga simples.
 - Contagem "X/4 hábitos hoje" e resumo semanal de exercício.
+- **Ritmo de atleta**: sequência atual e recorde de dias com ao menos um
+  hábito concluído, visão dos últimos 7 dias e marcos de 3, 7, 14, 30, 60
+  e 100 dias. Tudo é recalculado do histórico e isolado por perfil.
 
 ### Saga (história)
 - 3 capítulos escritos: **A Torre do Impulso** (Guardião da Inércia),
@@ -47,10 +50,10 @@ Pages.
 
 ### Personagem (gamificação)
 - Roster de **personagens prontos** para escolher rápido: Kiro, Sora e
-  Nane (ilustrações vetoriais originais, cores diferentes) e **Yara**
-  (foto de referência enviada, estilo anime). Depois de escolher, dá
-  pra personalizar tom de pele, cor de cabelo e cor de roupa (quando não
-  estiver no modo foto) e dar um nome ao personagem.
+  Nane (ilustrações vetoriais originais) e Yara, Rin e Kael (avatares de
+  foto). O personagem selecionado aparece também como combatente no card
+  do chefe. Depois de escolher, dá pra personalizar tom de pele, cor de
+  cabelo e cor de roupa (quando não estiver no modo foto) e dar um nome.
 - Cartão compacto na aba Hoje (nível + barra de XP) sem atrapalhar o
   checklist; cartão grande na aba **Personagem** com o guarda-roupa.
 - Reações curtas e que somem sozinhas: levanta a garrafinha ao registrar

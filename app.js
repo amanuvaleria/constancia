@@ -393,6 +393,71 @@ function countDoneHabits(entry) {
   return (isAguaDone(entry) ? 1 : 0) + (entry.exercicio ? 1 : 0) + (entry.fibras ? 1 : 0) + (entry.dieta ? 1 : 0);
 }
 
+// Sequência do Ritmo de Atleta: conta um dia quando ao menos um hábito
+// foi concluído. Todo valor é derivado do histórico, sem estado duplicado.
+function getConsistencyDayKeys(profileId) {
+  const data = loadData(profileId);
+  return Object.keys(data).filter((key) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return false;
+    return countDoneHabits({ ...defaultEntry(), ...data[key] }) > 0;
+  }).sort();
+}
+
+function getStreakStats(profileId) {
+  const activeDays = new Set(getConsistencyDayKeys(profileId));
+  const today = todayDate();
+  const todayKeyValue = formatDateKey(today);
+  let cursor = activeDays.has(todayKeyValue) ? today : addDays(today, -1);
+  let current = 0;
+  while (activeDays.has(formatDateKey(cursor))) {
+    current++;
+    cursor = addDays(cursor, -1);
+  }
+
+  let best = 0;
+  let run = 0;
+  let previous = null;
+  for (const key of activeDays) {
+    const date = parseDateKey(key);
+    if (previous && formatDateKey(addDays(previous, 1)) === key) run++;
+    else run = 1;
+    best = Math.max(best, run);
+    previous = date;
+  }
+  return { current, best, activeDays };
+}
+
+function renderStreak(profile) {
+  const { current, best, activeDays } = getStreakStats(profile.id);
+  document.getElementById("streakCurrent").textContent = current;
+  document.getElementById("streakBest").textContent = `Recorde: ${best} ${best === 1 ? "dia" : "dias"}`;
+
+  const milestones = [3, 7, 14, 30, 60, 100];
+  const nextMark = milestones.find((mark) => current < mark);
+  const reachedMark = milestones.includes(current);
+  document.getElementById("streakMilestone").textContent = nextMark
+    ? `Próxima marca: ${nextMark} dias`
+    : "Marca de 100 dias alcançada!";
+  document.getElementById("streakMessage").textContent = current
+    ? reachedMark
+      ? `🏆 Marco de ${current} dias alcançado! Próxima parada: ${nextMark || "100+"}.`
+      : `Você está em uma sequência de ${current} ${current === 1 ? "dia" : "dias"}. Continue no seu ritmo!`
+    : "Registre um hábito concluído para acender sua sequência.";
+
+  const week = document.getElementById("streakWeek");
+  week.innerHTML = "";
+  for (let offset = 6; offset >= 0; offset--) {
+    const date = addDays(todayDate(), -offset);
+    const key = formatDateKey(date);
+    const active = activeDays.has(key);
+    const day = document.createElement("div");
+    day.className = `streak-day${active ? " active" : ""}${offset === 0 ? " today" : ""}`;
+    day.setAttribute("aria-label", `${WEEKDAY_LONG[date.getDay()]} ${pad2(date.getDate())}: ${active ? "hábito concluído" : "sem conclusão"}`);
+    day.innerHTML = `<span>${WEEKDAY_SHORT[date.getDay()]}</span><i>${active ? "✓" : "·"}</i>`;
+    week.appendChild(day);
+  }
+}
+
 function countExerciseInWeek(profileId, monday) {
   const data = loadData(profileId);
   let count = 0;
@@ -646,6 +711,7 @@ function renderToday() {
   const exCount = countExerciseInWeek(profile.id, monday);
   document.getElementById("weekExerciseLabel").textContent = `Exercício: ${exCount}/7 dias nesta semana`;
 
+  renderStreak(profile);
   renderMission(profile, entry);
 }
 
