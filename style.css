@@ -9,6 +9,8 @@
   --muted: #9aa7b2;
   --danger: #ef4444;
   --radius: 16px;
+  --lime: #b6ff3b;
+  --electric: #3ea6ff;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -453,6 +455,8 @@ button { font-family: inherit; }
 .char-svg .char-bottle { display: none; }
 .char-svg.eq-bottle .char-bottle,
 .char-svg.pose-water .char-bottle { display: block; }
+.char-svg .char-headband-layer { display: none; }
+.char-svg.eq-headband .char-headband-layer { display: block; }
 
 .char-rig { transform-origin: 80px 110px; }
 
@@ -486,5 +490,120 @@ button { font-family: inherit; }
   white-space: nowrap;
 }
 .level-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- toast de golpe (hit) ---------- */
+.hit-toast {
+  position: fixed; left: 50%; bottom: 150px;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--electric); color: #061527;
+  font-weight: 700; font-size: 0.85rem;
+  padding: 10px 18px; border-radius: 999px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 60;
+  white-space: nowrap;
+}
+.hit-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- 5 abas: nav mais compacta ---------- */
+.nav-btn { font-size: 0.64rem; padding: 6px 2px; }
+.nav-btn .nav-icon { font-size: 1.15rem; }
+.nav-btn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
+/* ---------- mission card: estilo "painel de quadrinho" ---------- */
+.mission-card {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(62,166,255,0.14), transparent 55%),
+    linear-gradient(160deg, #142a1c, var(--card));
+  border: 2px solid var(--lime);
+  box-shadow: 3px 3px 0 rgba(182,255,59,0.25);
+  position: relative;
+  overflow: hidden;
+}
+.mission-arc { color: var(--electric); font-weight: 700; }
+.boss-hp-fill { background: linear-gradient(90deg, var(--danger), var(--lime)); }
+.boss-hp-fill.defeated { background: var(--lime); }
+#bossProgressText { color: var(--text); font-weight: 600; }
+
+.impact-slash {
+  position: absolute; right: 10px; top: 6px;
+  font-size: 0; width: 0; height: 0;
+  pointer-events: none;
+}
+.impact-slash.hit::before {
+  content: "💥";
+  position: absolute; right: -6px; top: -4px;
+  font-size: 1.8rem;
+  animation: slashPop 0.5s ease forwards;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes slashPop {
+    0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+    40% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 0; }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .impact-slash.hit::before { content: "💥"; position: static; font-size: 1.2rem; animation: none; opacity: 1; }
+}
+
+/* ---------- personagem: foto (preset real) ---------- */
+.char-photo-wrap { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid var(--card-border); }
+.char-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .char-photo-wrap.pose-water,
+  .char-photo-wrap.pose-victory,
+  .char-photo-wrap.pose-celebrate { animation: photoBounce 0.7s ease; }
+}
+@keyframes photoBounce { 0%,100% { transform: scale(1); } 40% { transform: scale(1.08) rotate(-3deg); } }
+
+/* ---------- personagens prontos (roster) ---------- */
+.preset-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.preset-tile {
+  flex-shrink: 0; width: 76px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: transparent; border: none; cursor: pointer;
+}
+.preset-thumb {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--bg-elev);
+  border: 2px solid var(--card-border);
+  overflow: hidden;
+}
+.preset-thumb img, .preset-thumb svg { width: 100%; height: 100%; object-fit: cover; }
+.preset-tile.selected .preset-thumb { border-color: var(--lime); box-shadow: 0 0 0 2px var(--accent-dim); }
+.preset-tile span { font-size: 0.72rem; color: var(--text); }
+#customizeCard.hidden { display: none; }
+
+/* ---------- item-tile: motivo de desbloqueio ---------- */
+.item-tile .item-unlock-reason { display: block; font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+
+/* ---------- Saga: capas de mangá ---------- */
+.saga-list { display: flex; flex-direction: column; gap: 14px; }
+.saga-chapter {
+  background: var(--card);
+  border: 2px solid var(--card-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.saga-chapter.current { border-color: var(--lime); }
+.saga-chapter.done { border-color: var(--accent); }
+.saga-cover {
+  padding: 18px 16px;
+  background: linear-gradient(135deg, var(--accent-dim), var(--bg-elev));
+  position: relative;
+}
+.saga-chapter.locked .saga-cover { opacity: 0.5; }
+.saga-chapter-num { color: var(--electric); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+.saga-chapter-title { font-size: 1.15rem; margin: 4px 0 6px; }
+.saga-chapter-location { color: var(--muted); font-size: 0.8rem; margin: 0; }
+.saga-chapter-emoji { position: absolute; right: 16px; top: 16px; font-size: 2.2rem; }
+.saga-chapter-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.saga-progress-bar { height: 8px; border-radius: 6px; background: #121a22; border: 1px solid var(--card-border); overflow: hidden; }
+.saga-progress-fill { height: 100%; background: var(--lime); }
+.saga-status-text { color: var(--muted); font-size: 0.82rem; margin: 0; }
+.saga-chapter-actions { display: flex; gap: 8px; }
+
 
 

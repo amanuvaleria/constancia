@@ -1,6 +1,6 @@
 // Service worker do Constância: cache offline dos arquivos estáticos.
 // Caminhos relativos para funcionar em qualquer subpasta (ex.: GitHub Pages).
-const CACHE_NAME = "constancia-v3";
+const CACHE_NAME = "constancia-v5";
 const ASSETS = ["./", "./index.html", "./style.css", "./app.js", "./manifest.json", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -27,7 +27,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 // ---------------------------------------------------------------
-// Web Push: avisos de missão ("⚔️ Missão de hoje — hora de treinar!")
+// Web Push: avisos de missão ("⚡ A arena abriu. Hora da sua missão de treino!")
 // ---------------------------------------------------------------
 
 self.addEventListener("push", (event) => {
@@ -38,7 +38,7 @@ self.addEventListener("push", (event) => {
     data = { title: "Constância", body: event.data ? event.data.text() : "Hora de treinar!" };
   }
   const title = data.title || "Constância";
-  const body = data.body || "⚔️ Missão de hoje — hora de treinar!";
+  const body = data.body || "⚡ A arena abriu. Hora da sua missão de treino!";
   const profileId = data.profileId || "";
   const url = "./index.html" + (profileId ? `?profile=${encodeURIComponent(profileId)}` : "");
 

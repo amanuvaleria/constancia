@@ -59,8 +59,8 @@
     <!-- Missão principal (chefe da semana) -->
     <section class="card mission-card" id="card-missao">
       <div class="mission-head">
-        <span class="mission-arc" id="missionArcTitle">Arco 1 — A Torre do Impulso</span>
-        <button class="btn-link" id="missionStoryBtn">📖 Ver história</button>
+        <span class="mission-arc" id="missionArcTitle">Capítulo 1 · A Torre do Impulso</span>
+        <button class="btn-link" id="missionStoryBtn">📖 Saga</button>
       </div>
       <h2 class="mission-title">Treinar na academia</h2>
 
@@ -69,9 +69,10 @@
         <div class="boss-info">
           <strong id="bossName">Guardião da Inércia</strong>
           <div class="boss-hp-bar"><div class="boss-hp-fill" id="bossHpFill"></div></div>
-          <small id="bossHpText">3 golpes restantes</small>
+          <small id="bossProgressText">0 de 3 treinos · Faltam 3 golpes</small>
         </div>
         <span class="hero-emoji" id="heroEmoji">🤺</span>
+        <span class="impact-slash" id="impactSlash"></span>
       </div>
 
       <p class="mission-status" id="missionStatusText">Ainda sem treino registrado hoje.</p>
@@ -169,6 +170,11 @@
     </section>
 
     <section class="card">
+      <h2 class="section-title">Personagens prontos</h2>
+      <div class="preset-row" id="presetRow"></div>
+    </section>
+
+    <section class="card" id="customizeCard">
       <h2 class="section-title">Personalizar</h2>
       <label class="field-label">Tom de pele</label>
       <div class="swatch-row" id="skinSwatches"></div>
@@ -183,6 +189,12 @@
       <div class="item-grid" id="itemGrid"></div>
     </section>
 
+  </main>
+
+  <!-- ===================== PÁGINA: SAGA ===================== -->
+  <main id="page-saga" class="page">
+    <p class="date-label">Acompanhe os capítulos da sua jornada</p>
+    <section id="sagaList" class="saga-list"></section>
   </main>
 
   <!-- ===================== PÁGINA: PERFIS ===================== -->
@@ -249,6 +261,9 @@
     <button class="nav-btn" data-page="historico">
       <span class="nav-icon">📅</span><span>Histórico</span>
     </button>
+    <button class="nav-btn" data-page="saga">
+      <span class="nav-icon">📖</span><span>Saga</span>
+    </button>
     <button class="nav-btn" data-page="personagem">
       <span class="nav-icon">🧑‍🎤</span><span>Personagem</span>
     </button>
@@ -260,6 +275,7 @@
 </div>
 
 <div class="level-toast" id="levelToast"></div>
+<div class="hit-toast" id="hitToast"></div>
 
 <!-- Modal de história (cenas da arena) -->
 <div class="story-overlay hidden" id="storyOverlay">

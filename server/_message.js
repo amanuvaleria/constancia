@@ -4,15 +4,17 @@ function buildMissionMessage(sub) {
     ? sub.status.boss.name
     : null;
 
-  let body = "⚔️ Missão de hoje — hora de treinar!";
+  // Sem dado de chefe sincronizado: mensagem neutra, sem citar a vida do boss.
+  let body = "⚡ A arena abriu. Hora da sua missão de treino!";
+
   if (bossName && sub.status.boss.hitsLeft != null) {
     const hitsLeft = sub.status.boss.hitsLeft;
     if (hitsLeft <= 0) {
-      body = `⚔️ Missão de hoje — hora de treinar! Guardião ${bossName} já tombou esta semana 🎉`;
+      body = `⚡ A arena abriu! O ${bossName} já tombou essa semana 🎉`;
     } else if (hitsLeft === 1) {
-      body = `⚔️ Missão de hoje — hora de treinar! Falta 1 golpe para vencer o ${bossName}.`;
+      body = `⚔️ Falta um golpe para vencer o ${bossName}!`;
     } else {
-      body = `⚔️ Missão de hoje — hora de treinar! Faltam ${hitsLeft} golpes para vencer o ${bossName}.`;
+      body = `⚔️ Faltam ${hitsLeft} golpes para vencer o ${bossName}!`;
     }
   }
   return { title: "Constância", body };

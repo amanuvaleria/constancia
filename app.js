@@ -78,39 +78,82 @@ function todayKey() {
 }
 
 // ---------------------------------------------------------------
-// História — Arco 1: A Torre do Impulso
+// História — Saga do Constância (capítulos / arenas)
 // ---------------------------------------------------------------
 
-const STORY_ARC = {
-  id: "torre-impulso",
-  title: "Arco 1 — A Torre do Impulso",
-  location: "Torre do Impulso, nos arredores da Academia Vargen",
-  boss: { name: "Guardião da Inércia", emoji: "🗿" },
-  reward: { badge: "Emblema da Primeira Chama", accessory: "Bracelete de Impulso" },
-  intro: [
-    { speaker: "Vix", text: "Aprendiz! Chegou a hora. A Torre do Impulso se abriu diante de você." },
-    { speaker: "Treinadora Kaya", text: "Lá dentro mora o Guardião da Inércia — um gigante de pedra que se alimenta da nossa preguiça." },
-    { speaker: "Treinadora Kaya", text: "Cada treino que você completar na academia é um golpe de verdade contra ele. Não existe treino fácil, existe treino feito." },
-    { speaker: "Vix", text: "Vença o Guardião antes que a semana acabe! Se não vencer, pode tentar de novo na semana seguinte." },
-  ],
-  victory: [
-    { speaker: "Treinadora Kaya", text: "As rachaduras se abrem... a pedra não aguenta mais!" },
-    { speaker: "Narrador", text: "O Guardião da Inércia desmorona em pó verde brilhante." },
-    { speaker: "Vix", text: "Você conseguiu! O primeiro Guardião da Arena caiu diante da sua constância." },
-    { speaker: "Treinadora Kaya", text: "Isso não foi sorte. Foi hábito. Guarde esse emblema — ele é prova do que você já é capaz de sustentar." },
-  ],
-};
+const CHAPTERS = [
+  {
+    id: "torre-impulso",
+    num: 1,
+    title: "A Torre do Impulso",
+    episodeLabel: "Capítulo 1 · A Torre do Impulso",
+    location: "Torre do Impulso, Academia Vargen",
+    boss: { name: "Guardião da Inércia", emoji: "🗿" },
+    reward: { badge: "Emblema da Primeira Chama", accessoryId: "faixa_eletrica" },
+    intro: [
+      { speaker: "Treinadora Aya", text: "Bem-vinda à Torre do Impulso. Esta arena guarda o primeiro Guardião da Liga." },
+      { speaker: "Treinadora Aya", text: "O Guardião da Inércia é pedra pura — rachaduras verdes correm por ele como veias de energia presa." },
+      { speaker: "Treinadora Aya", text: "Cada treino seu é um golpe de verdade. Vença antes que a semana acabe." },
+    ],
+    victory: [
+      { speaker: "Narrador", text: "As rachaduras se abrem de vez. O Guardião da Inércia desmorona em pó verde brilhante." },
+      { speaker: "Treinadora Aya", text: "Isso não foi sorte — foi hábito. Leve esse emblema com você." },
+    ],
+  },
+  {
+    id: "eco-rotina",
+    num: 2,
+    title: "O Eco da Rotina",
+    episodeLabel: "Capítulo 2 · O Eco da Rotina",
+    location: "Arquibancada Vazia, Academia Vargen",
+    boss: { name: "Eco Silencioso", emoji: "👥" },
+    reward: { badge: "Emblema do Eco", accessoryId: "jaqueta_academia" },
+    intro: [
+      { speaker: "Narrador", text: "A arquibancada está vazia — mas a cada treino registrado, um eco responde lá do alto." },
+      { speaker: "Treinadora Aya", text: "Esse eco é o Guardião desta arena. Ele só desaparece quando sua rotina fica forte o bastante pra calar o silêncio." },
+    ],
+    victory: [
+      { speaker: "Narrador", text: "O eco finalmente responde em uníssono — e você percebe: são todos os aprendizes que vieram antes, torcendo por você." },
+      { speaker: "Treinadora Aya", text: "Você nunca treinou sozinha. Essa jaqueta é sua, aprendiz." },
+    ],
+  },
+  {
+    id: "desafio-aurora",
+    num: 3,
+    title: "O Desafio da Aurora",
+    episodeLabel: "Capítulo 3 · O Desafio da Aurora",
+    location: "Torre do Impulso, ao amanhecer",
+    boss: { name: "Guardiã da Aurora", emoji: "🌅" },
+    reward: { badge: "Emblema da Aurora", accessoryId: "garrafinha_guardiao" },
+    intro: [
+      { speaker: "Treinadora Aya", text: "De volta à primeira arena — mas ao amanhecer, ela se mostra diferente: mais rápida, mais exigente." },
+      { speaker: "Treinadora Aya", text: "Olhe pra trás: você não é mais quem começou na Torre do Impulso." },
+    ],
+    victory: [
+      { speaker: "Narrador", text: "A luz da Guardiã da Aurora se dissolve no amanhecer real." },
+      { speaker: "Treinadora Aya", text: "Essa garrafinha carrega o símbolo do primeiro Guardião. Você fechou o círculo." },
+    ],
+  },
+];
 
-// ---------------------------------------------------------------
-// Perfis
-// ---------------------------------------------------------------
+function getChapter(index) {
+  return CHAPTERS[Math.min(index, CHAPTERS.length - 1)];
+}
 
 function uid() {
   return `p_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function defaultStoryState() {
-  return { introSeen: false, bossDefeated: false, victorySeen: false, badges: [], accessories: [] };
+  return {
+    chapterIndex: 0,
+    chapterStartMonday: null, // quando setado, o capítulo só "abre" a partir dessa segunda-feira
+    completedChapters: [], // ids de capítulos já vencidos
+    introSeenFor: [], // ids de capítulos cuja cena de intro já foi vista
+    victoryPendingFor: null, // id do capítulo com cena de vitória ainda não vista
+    badges: [],
+    accessories: [], // ids de acessórios (ITEM_CATALOG) desbloqueados pela história
+  };
 }
 
 // ---------------------------------------------------------------
@@ -121,14 +164,28 @@ const SKIN_PRESETS = ["#8d5a3c", "#c68642", "#e0ac69", "#f1c27d", "#ffdbac"];
 const HAIR_PRESETS = ["#1b1b1b", "#3b2412", "#6b3f1d", "#a65e2e", "#d9a441", "#e8e8e8"];
 const OUTFIT_PRESETS = ["#16a34a", "#2563eb", "#db2777", "#f59e0b", "#7c3aed", "#334155"];
 
-// Catálogo de itens equipáveis, desbloqueados por nível do personagem
+// Catálogo de itens equipáveis — alguns desbloqueiam por nível, outros por
+// vencer um capítulo da Saga (igual a um jogo de RPG com guarda-roupa).
 const ITEM_CATALOG = [
-  { id: "tenis_branco", type: "shoe", name: "Tênis branco", unlockLevel: 1, emoji: "👟", color: "#f3f6f4" },
-  { id: "tenis_verde", type: "shoe", name: "Tênis verde", unlockLevel: 2, emoji: "🟢", color: "#22c55e" },
-  { id: "fones", type: "headphones", name: "Fones de ouvido", unlockLevel: 3, emoji: "🎧" },
-  { id: "jaqueta", type: "jacket", name: "Jaqueta corta-vento", unlockLevel: 4, emoji: "🧥" },
-  { id: "garrafinha_dourada", type: "bottle", name: "Garrafinha dourada", unlockLevel: 5, emoji: "🏅" },
+  { id: "tenis_branco", type: "shoe", name: "Tênis branco", emoji: "👟", color: "#f3f6f4",
+    unlockType: "level", unlockLevel: 1, unlockLabel: "Disponível desde o início" },
+  { id: "tenis_verde", type: "shoe", name: "Tênis verde", emoji: "🟢", color: "#22c55e",
+    unlockType: "level", unlockLevel: 2, unlockLabel: "Alcance o nível 2" },
+  { id: "faixa_eletrica", type: "headband", name: "Faixa Elétrica", emoji: "⚡",
+    unlockType: "chapter", unlockChapter: "torre-impulso", unlockLabel: "Vença o Guardião da Inércia" },
+  { id: "jaqueta_academia", type: "jacket", name: "Jaqueta da Academia", emoji: "🧥",
+    unlockType: "chapter", unlockChapter: "eco-rotina", unlockLabel: "Vença o Eco Silencioso" },
+  { id: "fones_verdes", type: "headphones", name: "Fones Verdes", emoji: "🎧",
+    unlockType: "level", unlockLevel: 5, unlockLabel: "Alcance o nível 5" },
+  { id: "garrafinha_guardiao", type: "bottle", name: "Garrafinha do Guardião", emoji: "🍶",
+    unlockType: "chapter", unlockChapter: "desafio-aurora", unlockLabel: "Vença a Guardiã da Aurora" },
 ];
+
+function isItemUnlocked(item, profile, level) {
+  if (item.unlockType === "level") return level >= item.unlockLevel;
+  if (item.unlockType === "chapter") return (profile.story.completedChapters || []).includes(item.unlockChapter);
+  return false;
+}
 
 function defaultCharacter(profileName) {
   return {
@@ -136,9 +193,20 @@ function defaultCharacter(profileName) {
     skin: SKIN_PRESETS[2],
     hair: HAIR_PRESETS[0],
     outfit: OUTFIT_PRESETS[0],
-    equipped: { shoe: "tenis_branco", headphones: false, jacket: false, bottle: false },
+    photo: null, // quando definido (ex.: "preset-01.jpg"), usa foto em vez do avatar vetorial
+    equipped: { shoe: "tenis_branco", headphones: false, jacket: false, bottle: false, headband: false },
   };
 }
+
+// Personagens prontos pra escolher rápido (estilo "roster" de anime esportivo).
+// Os 3 primeiros são ilustrações vetoriais originais (cores diferentes);
+// o último usa a foto de referência enviada pelo usuário.
+const PRESET_CHARACTERS = [
+  { id: "kiro", name: "Kiro", type: "svg", skin: SKIN_PRESETS[2], hair: "#1b1b1b", outfit: "#f59e0b" },
+  { id: "sora", name: "Sora", type: "svg", skin: SKIN_PRESETS[4], hair: "#e8e8e8", outfit: "#334155" },
+  { id: "nane", name: "Nane", type: "svg", skin: SKIN_PRESETS[1], hair: "#7a1f1f", outfit: "#db2777" },
+  { id: "yara", name: "Yara", type: "photo", photo: "preset-01.jpg" },
+];
 
 // Preenche campos novos em perfis antigos sem apagar o que já existe
 function ensureProfileDefaults(profile) {
@@ -146,10 +214,15 @@ function ensureProfileDefaults(profile) {
   if (!Array.isArray(profile.trainDays)) profile.trainDays = [1, 2, 3, 4, 5]; // seg-sex
   if (!profile.reminderTime) profile.reminderTime = "18:00";
   if (profile.reminderEnabled == null) profile.reminderEnabled = false;
-  if (!profile.story) profile.story = defaultStoryState();
+  if (!profile.story || typeof profile.story.chapterIndex !== "number") {
+    const old = profile.story || {};
+    profile.story = { ...defaultStoryState(), badges: old.badges || [], accessories: old.accessories || [] };
+  }
   if (!profile.character) profile.character = defaultCharacter(profile.name);
-  if (!profile.character.equipped) profile.character.equipped = { shoe: "tenis_branco", headphones: false, jacket: false, bottle: false };
+  if (!profile.character.equipped) profile.character.equipped = { shoe: "tenis_branco", headphones: false, jacket: false, bottle: false, headband: false };
+  if (profile.character.equipped.headband === undefined) profile.character.equipped.headband = false;
   if (profile.character.lastSeenLevel == null) profile.character.lastSeenLevel = 1;
+  if (profile.character.photo === undefined) profile.character.photo = null;
   return profile;
 }
 
@@ -263,7 +336,7 @@ function checkLevelUp(profileId) {
   const xp = computeXp(profileId);
   const newLevel = computeLevel(xp);
   if (newLevel > profile.character.lastSeenLevel) {
-    const unlocked = ITEM_CATALOG.find((it) => it.unlockLevel === newLevel) || null;
+    const unlocked = ITEM_CATALOG.find((it) => it.unlockType === "level" && it.unlockLevel === newLevel) || null;
     profile.character.lastSeenLevel = newLevel;
     saveProfiles(profiles);
     showLevelUpToast(newLevel, unlocked);
@@ -335,38 +408,56 @@ function countExerciseInWeek(profileId, monday) {
 // ---------------------------------------------------------------
 
 function getBossState(profile) {
-  const monday = getMonday(todayDate());
+  const today = todayDate();
+  const monday = getMonday(today);
   const goal = profile.weeklyGoal || 3;
-  const hits = countExerciseInWeek(profile.id, monday);
+  const chapter = getChapter(profile.story.chapterIndex);
+  const isLastChapter = profile.story.chapterIndex >= CHAPTERS.length - 1 && profile.story.completedChapters.includes(chapter.id);
+
+  // aguardando a próxima semana pra começar o próximo capítulo?
+  const waiting = profile.story.chapterStartMonday && formatDateKey(monday) < profile.story.chapterStartMonday;
+
+  const hits = waiting ? 0 : countExerciseInWeek(profile.id, monday);
   const hitsCapped = Math.min(hits, goal);
   const hp = Math.max(0, goal - hitsCapped);
+
   return {
-    bossName: STORY_ARC.boss.name,
-    bossEmoji: STORY_ARC.boss.emoji,
+    chapter,
+    bossName: chapter.boss.name,
+    bossEmoji: chapter.boss.emoji,
     goal,
     hits: hitsCapped,
     hitsLeft: hp,
     pctHp: goal > 0 ? (hp / goal) * 100 : 0,
-    victoryNow: hitsCapped >= goal,
-    alreadyDefeated: !!(profile.story && profile.story.bossDefeated),
+    victoryNow: !waiting && hitsCapped >= goal,
+    waiting,
+    sagaComplete: isLastChapter,
   };
 }
 
-// Verifica se o chefe acabou de ser derrotado nesta semana e, se
-// sim, registra a vitória permanentemente (emblema, acessório, cena).
+// Verifica se o chefe acabou de ser derrotado nesta semana e, se sim,
+// registra a vitória do capítulo (emblema, acessório, cena) e agenda o
+// próximo capítulo pra começar só na semana seguinte.
 function checkBossVictory(profileId) {
   const profiles = loadProfiles();
   const profile = profiles.find((p) => p.id === profileId);
   if (!profile) return;
   const boss = getBossState(profile);
-  if (boss.victoryNow && !profile.story.bossDefeated) {
-    profile.story.bossDefeated = true;
-    profile.story.victorySeen = false;
-    if (!profile.story.badges.includes(STORY_ARC.reward.badge)) {
-      profile.story.badges.push(STORY_ARC.reward.badge);
+  const chapterId = boss.chapter.id;
+  if (boss.victoryNow && !profile.story.completedChapters.includes(chapterId)) {
+    profile.story.completedChapters.push(chapterId);
+    profile.story.victoryPendingFor = chapterId;
+    if (!profile.story.badges.includes(boss.chapter.reward.badge)) {
+      profile.story.badges.push(boss.chapter.reward.badge);
     }
-    if (!profile.story.accessories.includes(STORY_ARC.reward.accessory)) {
-      profile.story.accessories.push(STORY_ARC.reward.accessory);
+    if (!profile.story.accessories.includes(boss.chapter.reward.accessoryId)) {
+      profile.story.accessories.push(boss.chapter.reward.accessoryId);
+    }
+    // próximo capítulo só comeca na semana que vem
+    const monday = getMonday(todayDate());
+    profile.story.chapterStartMonday = formatDateKey(addDays(monday, 7));
+    if (profile.story.chapterIndex < CHAPTERS.length - 1) {
+      profile.story.chapterIndex += 1;
     }
     saveProfiles(profiles);
   }
@@ -398,11 +489,7 @@ function xpIntoLevel(xp) {
 }
 
 function nextUnlockForLevel(level) {
-  return ITEM_CATALOG.find((it) => it.unlockLevel > level) || null;
-}
-
-function unlockedItems(level) {
-  return ITEM_CATALOG.filter((it) => it.unlockLevel <= level);
+  return ITEM_CATALOG.filter((it) => it.unlockType === "level").find((it) => it.unlockLevel > level) || null;
 }
 
 // ---------------------------------------------------------------
@@ -418,6 +505,7 @@ function characterSvgMarkup(character) {
     eq.headphones ? "eq-headphones" : "",
     eq.jacket ? "eq-jacket" : "",
     eq.bottle ? "eq-bottle" : "",
+    eq.headband ? "eq-headband" : "",
   ].filter(Boolean).join(" ");
 
   return `
@@ -456,6 +544,10 @@ function characterSvgMarkup(character) {
       <rect x="42" y="42" width="12" height="18" rx="5" fill="#1f2937"/>
       <rect x="106" y="42" width="12" height="18" rx="5" fill="#1f2937"/>
     </g>
+    <!-- faixa elétrica -->
+    <g class="char-headband-layer">
+      <path d="M48 40 Q80 22 112 40" fill="none" stroke="#b6ff3b" stroke-width="7" stroke-linecap="round"/>
+    </g>
     <!-- rosto -->
     <circle cx="70" cy="54" r="3" fill="#1b1b1b"/>
     <circle cx="90" cy="54" r="3" fill="#1b1b1b"/>
@@ -467,6 +559,11 @@ function characterSvgMarkup(character) {
 function renderCharacterInto(containerId, character, extraClasses) {
   const el = document.getElementById(containerId);
   if (!el) return;
+  if (character.photo) {
+    el.innerHTML = `<div class="char-photo-wrap"><img src="./avatars/${character.photo}" class="char-photo" alt="${character.name}"></div>`;
+    if (extraClasses) el.querySelector(".char-photo-wrap").classList.add(...extraClasses.split(" "));
+    return;
+  }
   el.innerHTML = characterSvgMarkup(character);
   if (extraClasses) {
     const svg = el.querySelector("svg");
@@ -478,9 +575,9 @@ function renderCharacterInto(containerId, character, extraClasses) {
 // a preferência do sistema por movimento reduzido, pois a animação CSS
 // só existe dentro de @media (prefers-reduced-motion: no-preference)).
 function playCharacterPose(pose) {
-  document.querySelectorAll(".char-svg").forEach((svg) => {
-    svg.classList.add(pose);
-    setTimeout(() => svg.classList.remove(pose), 750);
+  document.querySelectorAll(".char-svg, .char-photo-wrap").forEach((el) => {
+    el.classList.add(pose);
+    setTimeout(() => el.classList.remove(pose), 750);
   });
 }
 
@@ -491,6 +588,19 @@ function showLevelUpToast(level, unlockedItem) {
     : `🎉 Nível ${level} alcançado!`;
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 2600);
+}
+
+function applyCharacterPreset(profileId, preset) {
+  updateProfile(profileId, (p) => {
+    if (preset.type === "photo") {
+      p.character.photo = preset.photo;
+    } else {
+      p.character.photo = null;
+      p.character.skin = preset.skin;
+      p.character.hair = preset.hair;
+      p.character.outfit = preset.outfit;
+    }
+  });
 }
 
 // ---------------------------------------------------------------
@@ -551,26 +661,28 @@ function renderMission(profile, entry) {
   const boss = getBossState(profile);
   const card = document.getElementById("card-missao");
 
-  document.getElementById("missionArcTitle").textContent = STORY_ARC.title;
-  document.getElementById("bossName").textContent = boss.bossName;
-  document.getElementById("bossEmoji").textContent = boss.alreadyDefeated ? "💨" : boss.bossEmoji;
+  document.getElementById("missionArcTitle").textContent = boss.chapter.episodeLabel;
+  document.getElementById("bossName").textContent = boss.waiting ? "Capítulo concluído" : boss.bossName;
+  document.getElementById("bossEmoji").textContent = boss.waiting ? "✅" : boss.bossEmoji;
 
   const fill = document.getElementById("bossHpFill");
-  fill.style.width = `${Math.max(0, Math.min(100, boss.pctHp))}%`;
-  fill.classList.toggle("defeated", boss.alreadyDefeated);
+  fill.style.width = `${boss.waiting ? 100 : Math.max(0, Math.min(100, boss.pctHp))}%`;
+  fill.classList.toggle("defeated", boss.waiting);
 
-  const hpText = document.getElementById("bossHpText");
-  if (boss.alreadyDefeated) {
-    hpText.textContent = "Guardião derrotado nesta semana 🎉";
+  const progressEl = document.getElementById("bossProgressText");
+  if (boss.waiting) {
+    progressEl.textContent = "Próximo capítulo começa na semana que vem 🎉";
+  } else if (boss.sagaComplete) {
+    progressEl.textContent = `${boss.hits} de ${boss.goal} treinos · Saga concluída! 🏆`;
   } else if (boss.hitsLeft <= 0) {
-    hpText.textContent = "Chefe prestes a cair!";
+    progressEl.textContent = `${boss.hits} de ${boss.goal} treinos · Chefe prestes a cair!`;
   } else if (boss.hitsLeft === 1) {
-    hpText.textContent = "Falta 1 golpe para vencer";
+    progressEl.textContent = `${boss.hits} de ${boss.goal} treinos · Falta 1 golpe`;
   } else {
-    hpText.textContent = `Faltam ${boss.hitsLeft} golpes para vencer`;
+    progressEl.textContent = `${boss.hits} de ${boss.goal} treinos · Faltam ${boss.hitsLeft} golpes`;
   }
 
-  card.classList.toggle("victory", boss.alreadyDefeated);
+  card.classList.toggle("victory", boss.waiting);
 
   const statusEl = document.getElementById("missionStatusText");
   const btn = document.getElementById("btn-treino");
@@ -581,18 +693,19 @@ function renderMission(profile, entry) {
     statusEl.textContent = "Treino de hoje concluído 💪 Golpe já aplicado no chefe desta semana.";
     btn.textContent = "Treino concluído hoje ✓";
   } else if (!planned) {
-    statusEl.textContent = "🌿 Dia de recuperação. Treinar hoje também conta para a meta, se quiser.";
+    statusEl.textContent = "😌 Dia de recuperação. Treinar hoje também conta para a meta, se quiser.";
     btn.textContent = "Concluí meu treino";
   } else {
     statusEl.textContent = "Ainda sem treino registrado hoje.";
     btn.textContent = "Concluí meu treino";
   }
 
-  // cenas: intro (uma vez) e vitória (quando ainda não vista)
-  if (!profile.story.introSeen) {
-    showIntroScene(profile.id);
-  } else if (profile.story.bossDefeated && !profile.story.victorySeen) {
-    showVictoryScene(profile.id);
+  // cenas: vitória pendente tem prioridade sobre a intro do próximo capítulo
+  if (profile.story.victoryPendingFor) {
+    const doneChapter = CHAPTERS.find((c) => c.id === profile.story.victoryPendingFor);
+    if (doneChapter) showVictoryScene(profile.id, doneChapter);
+  } else if (!profile.story.introSeenFor.includes(boss.chapter.id)) {
+    showIntroScene(profile.id, boss.chapter);
   }
 }
 
@@ -783,15 +896,16 @@ function renderDialogueLines(lines) {
   });
 }
 
-function openStoryOverlay({ lines, reward }) {
+function openStoryOverlay({ lines, reward, location }) {
   if (storyOverlayOpen) return;
   storyOverlayOpen = true;
-  document.getElementById("storyLocation").textContent = STORY_ARC.location;
+  document.getElementById("storyLocation").textContent = location || "";
   renderDialogueLines(lines);
   const rewardBox = document.getElementById("storyRewardBox");
   if (reward) {
     document.getElementById("storyRewardBadge").textContent = reward.badge;
-    document.getElementById("storyRewardAccessory").textContent = reward.accessory;
+    const accessory = ITEM_CATALOG.find((i) => i.id === reward.accessoryId);
+    document.getElementById("storyRewardAccessory").textContent = accessory ? `${accessory.emoji} ${accessory.name}` : "—";
     rewardBox.classList.remove("hidden");
   } else {
     rewardBox.classList.add("hidden");
@@ -804,43 +918,54 @@ function closeStoryOverlay() {
   document.getElementById("storyOverlay").classList.add("hidden");
 }
 
-function showIntroScene(profileId) {
+function showIntroScene(profileId, chapter) {
   if (storyOverlayOpen) return;
-  openStoryOverlay({ lines: STORY_ARC.intro });
+  openStoryOverlay({ lines: chapter.intro, location: chapter.location });
   document.getElementById("storyContinueBtn").onclick = () => {
-    updateProfile(profileId, (p) => { p.story.introSeen = true; });
+    updateProfile(profileId, (p) => { p.story.introSeenFor.push(chapter.id); });
     closeStoryOverlay();
     renderAll();
   };
 }
 
-function showVictoryScene(profileId) {
+function showVictoryScene(profileId, chapter) {
   if (storyOverlayOpen) return;
-  openStoryOverlay({ lines: STORY_ARC.victory, reward: STORY_ARC.reward });
+  openStoryOverlay({ lines: chapter.victory, reward: chapter.reward, location: chapter.location });
   document.getElementById("storyContinueBtn").onclick = () => {
-    updateProfile(profileId, (p) => { p.story.victorySeen = true; });
+    updateProfile(profileId, (p) => { p.story.victoryPendingFor = null; });
     closeStoryOverlay();
     renderAll();
   };
 }
 
-function showStoryRecap(profile) {
+// Reexibe uma cena já desbloqueada (usado na aba Saga, não altera estado)
+function replayScene(chapter, which) {
   if (storyOverlayOpen) return;
-  const lines = profile.story.bossDefeated ? STORY_ARC.victory : STORY_ARC.intro;
-  openStoryOverlay({ lines, reward: profile.story.bossDefeated ? STORY_ARC.reward : null });
+  const lines = which === "victory" ? chapter.victory : chapter.intro;
+  openStoryOverlay({ lines, reward: which === "victory" ? chapter.reward : null, location: chapter.location });
   document.getElementById("storyContinueBtn").onclick = () => closeStoryOverlay();
 }
 
-// Animação rápida de ataque ao registrar o treino de hoje
-function playAttackAnimation() {
+// Sequência curta estilo mangá ao registrar o treino: personagem avança,
+// aparece um traço de impacto, a vida do chefe diminui (CSS cuida disso
+// via renderMission) e surge "Treino registrado · N golpe(s)".
+function playHitSequence(hitsNow) {
   const hero = document.getElementById("heroEmoji");
   const boss = document.getElementById("bossEmoji");
+  const slash = document.getElementById("impactSlash");
   hero.classList.add("attack");
   boss.classList.add("shake");
+  slash.classList.add("hit");
   setTimeout(() => {
     hero.classList.remove("attack");
     boss.classList.remove("shake");
+    slash.classList.remove("hit");
   }, 650);
+
+  const toast = document.getElementById("hitToast");
+  toast.textContent = `Treino registrado · ${hitsNow} golpe${hitsNow === 1 ? "" : "s"}`;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
 // ---------------------------------------------------------------
@@ -877,23 +1002,60 @@ function renderCharacterPage() {
     ? `Faltam ${100 - into} XP para o nível ${level + 1} — desbloqueia ${next.emoji} ${next.name}`
     : "Todos os itens do guarda-roupa já foram desbloqueados!";
 
-  renderSwatchRow("skinSwatches", SKIN_PRESETS, character.skin, (color) => {
-    updateProfile(profile.id, (p) => { p.character.skin = color; });
-    renderCharacterPage();
-    renderCharacterMini(getActiveProfile());
-  });
-  renderSwatchRow("hairSwatches", HAIR_PRESETS, character.hair, (color) => {
-    updateProfile(profile.id, (p) => { p.character.hair = color; });
-    renderCharacterPage();
-    renderCharacterMini(getActiveProfile());
-  });
-  renderSwatchRow("outfitSwatches", OUTFIT_PRESETS, character.outfit, (color) => {
-    updateProfile(profile.id, (p) => { p.character.outfit = color; });
-    renderCharacterPage();
-    renderCharacterMini(getActiveProfile());
-  });
+  renderPresetRow(profile, character);
+
+  const customizeCard = document.getElementById("customizeCard");
+  customizeCard.classList.toggle("hidden", !!character.photo);
+  if (!character.photo) {
+    renderSwatchRow("skinSwatches", SKIN_PRESETS, character.skin, (color) => {
+      updateProfile(profile.id, (p) => { p.character.skin = color; });
+      renderCharacterPage();
+      renderCharacterMini(getActiveProfile());
+    });
+    renderSwatchRow("hairSwatches", HAIR_PRESETS, character.hair, (color) => {
+      updateProfile(profile.id, (p) => { p.character.hair = color; });
+      renderCharacterPage();
+      renderCharacterMini(getActiveProfile());
+    });
+    renderSwatchRow("outfitSwatches", OUTFIT_PRESETS, character.outfit, (color) => {
+      updateProfile(profile.id, (p) => { p.character.outfit = color; });
+      renderCharacterPage();
+      renderCharacterMini(getActiveProfile());
+    });
+  }
 
   renderItemGrid(profile, level);
+}
+
+function renderPresetRow(profile, character) {
+  const row = document.getElementById("presetRow");
+  row.innerHTML = "";
+  PRESET_CHARACTERS.forEach((preset) => {
+    const isActive = preset.type === "photo"
+      ? character.photo === preset.photo
+      : (!character.photo && character.skin === preset.skin && character.hair === preset.hair && character.outfit === preset.outfit);
+
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "preset-tile" + (isActive ? " selected" : "");
+    const thumb = document.createElement("div");
+    thumb.className = "preset-thumb";
+    if (preset.type === "photo") {
+      thumb.innerHTML = `<img src="./avatars/${preset.photo}" alt="${preset.name}">`;
+    } else {
+      thumb.innerHTML = characterSvgMarkup({ skin: preset.skin, hair: preset.hair, outfit: preset.outfit, equipped: {} });
+    }
+    tile.appendChild(thumb);
+    const label = document.createElement("span");
+    label.textContent = preset.name;
+    tile.appendChild(label);
+    tile.addEventListener("click", () => {
+      applyCharacterPreset(profile.id, preset);
+      renderCharacterPage();
+      renderCharacterMini(getActiveProfile());
+    });
+    row.appendChild(tile);
+  });
 }
 
 function renderSwatchRow(containerId, colors, selected, onPick) {
@@ -913,7 +1075,7 @@ function renderItemGrid(profile, level) {
   const grid = document.getElementById("itemGrid");
   grid.innerHTML = "";
   ITEM_CATALOG.forEach((item) => {
-    const locked = item.unlockLevel > level;
+    const locked = !isItemUnlocked(item, profile, level);
     const equippedBool = item.type === "shoe"
       ? profile.character.equipped.shoe === item.id
       : !!profile.character.equipped[item.type] && getEquippedIdForType(profile, item.type) === item.id;
@@ -924,7 +1086,7 @@ function renderItemGrid(profile, level) {
     tile.innerHTML = `
       <span class="item-emoji">${item.emoji}</span>
       <span class="item-name">${item.name}</span>
-      <span class="item-level">${locked ? `Nível ${item.unlockLevel}` : (equippedBool ? "Equipado" : "Toque para equipar")}</span>
+      <span class="item-level">${locked ? item.unlockLabel : (equippedBool ? "Equipado" : "Toque para equipar")}</span>
     `;
     if (!locked) {
       tile.addEventListener("click", () => toggleEquip(profile.id, item));
@@ -1152,7 +1314,7 @@ async function sendTestAlert(profile) {
   if ("serviceWorker" in navigator && "Notification" in window) {
     try {
       const reg = await navigator.serviceWorker.ready;
-      await reg.showNotification("⚔️ Missão de hoje — teste", {
+      await reg.showNotification("⚡ A arena abriu — teste", {
         body: "Este é um aviso de teste local do Constância.",
         icon: "./icon-192.png",
       });
@@ -1203,6 +1365,66 @@ function goToPage(pageName) {
   if (pageName === "historico") renderHistory();
   if (pageName === "perfis") renderProfiles();
   if (pageName === "personagem") renderCharacterPage();
+  if (pageName === "saga") renderSagaPage();
+}
+
+// ---------------------------------------------------------------
+// Render: Saga (capas de capítulos em estilo mangá)
+// ---------------------------------------------------------------
+
+function renderSagaPage() {
+  const profile = getActiveProfile();
+  const boss = getBossState(profile);
+  const list = document.getElementById("sagaList");
+  list.innerHTML = "";
+
+  CHAPTERS.forEach((chapter, idx) => {
+    const done = profile.story.completedChapters.includes(chapter.id);
+    const isCurrent = idx === profile.story.chapterIndex && !done;
+    const locked = idx > profile.story.chapterIndex;
+
+    const card = document.createElement("article");
+    card.className = "saga-chapter" + (done ? " done" : "") + (isCurrent ? " current" : "") + (locked ? " locked" : "");
+
+    const progressPct = locked ? 0 : done ? 100 : Math.max(0, Math.min(100, (boss.hits / boss.goal) * 100));
+    let statusText;
+    if (done) statusText = "Capítulo concluído — reveja as cenas abaixo.";
+    else if (locked) statusText = "Vença o capítulo anterior para desbloquear.";
+    else if (boss.waiting) statusText = "Aguardando a semana que vem para começar.";
+    else statusText = `${boss.hits} de ${boss.goal} treinos · ${boss.hitsLeft <= 0 ? "pronto pra vencer!" : `faltam ${boss.hitsLeft} golpe${boss.hitsLeft === 1 ? "" : "s"}`}`;
+
+    card.innerHTML = `
+      <div class="saga-cover">
+        <span class="saga-chapter-num">Capítulo ${chapter.num}</span>
+        <h3 class="saga-chapter-title">${chapter.title}</h3>
+        <p class="saga-chapter-location">${chapter.location}</p>
+        <span class="saga-chapter-emoji">${chapter.boss.emoji}</span>
+      </div>
+      <div class="saga-chapter-body">
+        <div class="saga-progress-bar"><div class="saga-progress-fill" style="width:${progressPct}%"></div></div>
+        <p class="saga-status-text">${statusText}</p>
+        <div class="saga-chapter-actions"></div>
+      </div>
+    `;
+
+    const actions = card.querySelector(".saga-chapter-actions");
+    if (!locked) {
+      const introBtn = document.createElement("button");
+      introBtn.className = "btn btn-outline";
+      introBtn.textContent = "Rever abertura";
+      introBtn.addEventListener("click", () => replayScene(chapter, "intro"));
+      actions.appendChild(introBtn);
+    }
+    if (done) {
+      const victoryBtn = document.createElement("button");
+      victoryBtn.className = "btn btn-outline";
+      victoryBtn.textContent = "Rever vitória";
+      victoryBtn.addEventListener("click", () => replayScene(chapter, "victory"));
+      actions.appendChild(victoryBtn);
+    }
+
+    list.appendChild(card);
+  });
 }
 
 // ---------------------------------------------------------------
@@ -1262,7 +1484,8 @@ function init() {
     toggleHabit(profileId, key, "exercicio");
     const after = getEntry(profileId, key).exercicio;
     if (!before && after) {
-      playAttackAnimation();
+      const boss = getBossState(getActiveProfile());
+      playHitSequence(boss.hits);
       playCharacterPose("pose-victory");
     }
   });
@@ -1285,9 +1508,9 @@ function init() {
     renderCharacterMini(getActiveProfile());
   });
 
-  // história: botão "ver história" e fechar modal
+  // história: botão "Saga" abre a aba de capítulos
   document.getElementById("missionStoryBtn").addEventListener("click", () => {
-    showStoryRecap(getActiveProfile());
+    goToPage("saga");
   });
 
   // perfis: meta semanal de treinos
