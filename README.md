@@ -10,17 +10,27 @@ Pages.
 ## O que o app faz
 
 ### Hoje
-- **Missão principal**: "Treinar na academia" contra o chefe da semana
-  (Arco 1: **Guardião da Inércia**, na Torre do Impulso). Cada treino
-  registrado é um golpe; a vida do chefe = meta semanal − treinos já
-  feitos nesta semana. Botão grande "Concluí meu treino", com animação de
-  ataque e barra de vida.
+- **Missão principal**: "Treinar na academia" contra o chefe do capítulo
+  atual da Saga. Cada treino registrado é um golpe; a vida do chefe =
+  meta semanal − treinos já feitos nesta semana. Botão grande "Concluí
+  meu treino", com sequência de golpe estilo mangá (traço de impacto +
+  "Treino registrado · N golpe(s)").
 - **Água (3.000 mL)**: botões +250 mL / +500 mL, "Outra qtd." para valor
   livre, "Desfazer" para o último registro do dia, barra de progresso.
 - **Fibras** e **Dieta**: botões liga/desliga simples.
 - Contagem "X/4 hábitos hoje" e resumo semanal de exercício.
-- Cenas de história desbloqueadas na introdução do arco e na vitória
-  contra o chefe (emblema + acessório ficam salvos permanentemente).
+
+### Saga (história)
+- 3 capítulos escritos: **A Torre do Impulso** (Guardião da Inércia),
+  **O Eco da Rotina** (Eco Silencioso) e **O Desafio da Aurora**
+  (Guardiã da Aurora), com a treinadora Aya guiando os aprendizes.
+- Capas em estilo capa de mangá, com progresso, cenas de abertura e
+  vitória revisáveis a qualquer momento.
+- Vencer o capítulo (bater a meta semanal de treinos) desbloqueia a
+  cena de vitória, um emblema e um acessório do guarda-roupa; o próximo
+  capítulo só começa na semana seguinte. Se a semana terminar antes da
+  vitória, o mesmo capítulo pode ser tentado de novo, sem perder níveis
+  ou itens já conquistados.
 
 ### Histórico
 - Semana de segunda a domingo, com navegação entre semanas.
@@ -36,9 +46,11 @@ Pages.
 - Aviso de que os dados ficam só naquele navegador/aparelho.
 
 ### Personagem (gamificação)
-- Cada perfil tem um avatar 2D cozy (ilustração própria em SVG vetorial,
-  não é foto/IA) com nome editável, tom de pele, cor de cabelo e cor de
-  roupa personalizáveis.
+- Roster de **personagens prontos** para escolher rápido: Kiro, Sora e
+  Nane (ilustrações vetoriais originais, cores diferentes) e **Yara**
+  (foto de referência enviada, estilo anime). Depois de escolher, dá
+  pra personalizar tom de pele, cor de cabelo e cor de roupa (quando não
+  estiver no modo foto) e dar um nome ao personagem.
 - Cartão compacto na aba Hoje (nível + barra de XP) sem atrapalhar o
   checklist; cartão grande na aba **Personagem** com o guarda-roupa.
 - Reações curtas e que somem sozinhas: levanta a garrafinha ao registrar
@@ -49,10 +61,10 @@ Pages.
   juntos somam 100. Sempre recalculado a partir dos registros salvos —
   nunca um contador manual — então marcar/desmarcar/marcar de novo dá o
   mesmo total, e corrigir um dia ajusta o XP na hora.
-- A cada 100 XP sobe 1 nível, mostrando quanto falta e qual item do
-  guarda-roupa desbloqueia a seguir (tênis, fones, jaqueta, garrafinha
-  dourada). Vencer o chefe da semana (meta de treinos) dá o emblema da
-  história, contando no máximo 1 treino por data.
+- A cada 100 XP sobe 1 nível, mostrando quanto falta e qual item
+  desbloqueia a seguir. Alguns itens do guarda-roupa (faixa elétrica,
+  jaqueta da academia, garrafinha do Guardião) desbloqueiam vencendo
+  capítulos específicos da Saga; outros (tênis, fones) por nível.
 
 ## Marca e ícone
 
