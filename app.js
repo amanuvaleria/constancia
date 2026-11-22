@@ -200,12 +200,14 @@ function defaultCharacter(profileName) {
 
 // Personagens prontos pra escolher rápido (estilo "roster" de anime esportivo).
 // Os 3 primeiros são ilustrações vetoriais originais (cores diferentes);
-// o último usa a foto de referência enviada pelo usuário.
+// os demais usam fotos de referência enviadas pelo usuário.
 const PRESET_CHARACTERS = [
   { id: "kiro", name: "Kiro", type: "svg", skin: SKIN_PRESETS[2], hair: "#1b1b1b", outfit: "#f59e0b" },
   { id: "sora", name: "Sora", type: "svg", skin: SKIN_PRESETS[4], hair: "#e8e8e8", outfit: "#334155" },
   { id: "nane", name: "Nane", type: "svg", skin: SKIN_PRESETS[1], hair: "#7a1f1f", outfit: "#db2777" },
   { id: "yara", name: "Yara", type: "photo", photo: "preset-01.jpg" },
+  { id: "rin", name: "Rin", type: "photo", photo: "preset-03.jpg" },
+  { id: "kael", name: "Kael", type: "photo", photo: "preset-02.jpg" },
 ];
 
 // Preenche campos novos em perfis antigos sem apagar o que já existe
