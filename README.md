@@ -23,10 +23,10 @@ Pages.
   hábito concluído, visão dos últimos 7 dias e marcos de 3, 7, 14, 30, 60
   e 100 dias. Tudo é recalculado do histórico e isolado por perfil.
 - **Caminho do Peso**: jornada em 8 etapas estilo mapa de jogo de anime.
-  O primeiro peso registrado vira a base; a cada etapa vencida na direção
-  da meta escolhida (perder peso ou ganhar massa), o personagem avança no
-  caminho e libera um item do guarda-roupa. Peso é editável/removível a
-  qualquer momento, e a etapa é sempre recalculada do histórico salvo.
+  O primeiro peso registrado vira a base; cada pesagem favorável (abaixo
+  da base ao perder peso, acima ao ganhar massa) avança uma etapa e rende
+  1 Cristal da Jornada. Itens do guarda-roupa são liberados nas etapas 2,
+  4, 6 e 8. Pesagens são editáveis/removíveis e o progresso vem do histórico.
 
 ### Saga (história)
 - 3 capítulos escritos: **A Torre do Impulso** (Guardião da Inércia),

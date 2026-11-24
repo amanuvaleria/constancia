@@ -193,7 +193,10 @@ const ITEM_CATALOG = [
 function isItemUnlocked(item, profile, level, stationsReached) {
   if (item.unlockType === "level") return level >= item.unlockLevel;
   if (item.unlockType === "chapter") return (profile.story.completedChapters || []).includes(item.unlockChapter);
-  if (item.unlockType === "weightStation") return (stationsReached || 0) >= item.unlockStation;
+  if (item.unlockType === "weightStation") {
+    const earnedStations = Math.max(profile.weightGoal?.lastSeenStation || 0, stationsReached || 0);
+    return earnedStations >= item.unlockStation;
+  }
   return false;
 }
 
@@ -324,6 +327,7 @@ function deleteProfile(id) {
   profiles = profiles.filter((p) => p.id !== id);
   saveProfiles(profiles);
   localStorage.removeItem(`${STORAGE_PREFIX}:data:${id}`);
+  localStorage.removeItem(`${STORAGE_PREFIX}:weights:${id}`);
   if (getActiveProfileId() === id) {
     setActiveProfileId(profiles[0].id);
   }
@@ -490,7 +494,7 @@ function renderStreak(profile) {
 // recompensa do guarda-roupa. Tudo é recalculado do histórico salvo.
 // ---------------------------------------------------------------
 
-const WEIGHT_MILESTONES_KG = [1, 2, 3, 5, 7, 10, 15, 20];
+const WEIGHT_TOTAL_STATIONS = 8;
 
 function loadWeights(profileId) {
   try {
@@ -529,22 +533,18 @@ function getWeightProgress(profile) {
   const series = loadWeights(profile.id);
   const configured = !!(profile.weightGoal && profile.weightGoal.type);
   if (!configured || series.length === 0) {
-    return { configured, hasData: series.length > 0, series, stationsReached: 0, totalStations: WEIGHT_MILESTONES_KG.length };
+    return { configured, hasData: series.length > 0, series, stationsReached: 0, totalStations: WEIGHT_TOTAL_STATIONS };
   }
   const baseline = series[0].weight;
   const latest = series[series.length - 1].weight;
-  const direction = profile.weightGoal.type === "perder" ? -1 : 1;
-  const delta = (latest - baseline) * direction;
-  const stationsReached = WEIGHT_MILESTONES_KG.filter((m) => delta >= m).length;
-  const totalStations = WEIGHT_MILESTONES_KG.length;
-  const nextMilestone = WEIGHT_MILESTONES_KG[stationsReached] ?? null;
-  const prevMilestone = stationsReached > 0 ? WEIGHT_MILESTONES_KG[stationsReached - 1] : 0;
-  const segmentProgress = nextMilestone
-    ? Math.max(0, Math.min(1, (delta - prevMilestone) / (nextMilestone - prevMilestone)))
-    : 1;
+  const favorableWeighIns = series.slice(1).filter((entry) =>
+    profile.weightGoal.type === "perder" ? entry.weight < baseline : entry.weight > baseline
+  ).length;
+  const stationsReached = Math.min(favorableWeighIns, WEIGHT_TOTAL_STATIONS);
+  const totalStations = WEIGHT_TOTAL_STATIONS;
   return {
-    configured: true, hasData: true, series, baseline, latest, delta,
-    stationsReached, totalStations, nextMilestone, segmentProgress,
+    configured: true, hasData: true, series, baseline, latest,
+    favorableWeighIns, stationsReached, totalStations,
     complete: stationsReached >= totalStations,
   };
 }
@@ -562,11 +562,6 @@ function checkWeightMilestones(profileId) {
     profile.weightGoal.lastSeenStation = progress.stationsReached;
     saveProfiles(profiles);
     showWeightMilestoneToast(progress.stationsReached, unlocked, progress.complete);
-  } else if (progress.stationsReached < lastSeen) {
-    // corrigir um peso passado pode reduzir o progresso; não perde a etapa
-    // já vista, só sincroniza o contador interno se caiu bem abaixo.
-    profile.weightGoal.lastSeenStation = Math.max(progress.stationsReached, 0);
-    saveProfiles(profiles);
   }
 }
 
@@ -591,7 +586,7 @@ function renderWeightPath(profile) {
     const isCurrent = i === progress.stationsReached;
     station.className = "weight-station" + (done ? " done" : "") + (isCurrent ? " current" : "");
     station.innerHTML = done ? "🚩" : isCurrent ? "🏃" : "·";
-    station.title = `Etapa ${i + 1} · ${WEIGHT_MILESTONES_KG[i]} kg`;
+    station.title = `Etapa ${i + 1}`;
     pathEl.appendChild(station);
     if (i < progress.totalStations - 1) {
       const connector = document.createElement("div");
@@ -600,15 +595,21 @@ function renderWeightPath(profile) {
     }
   }
 
-  const goalWord = profile.weightGoal.type === "perder" ? "perdidos" : "ganhos";
   const text = document.getElementById("weightProgressText");
   if (!progress.hasData) {
     text.textContent = "Registre seu primeiro peso para começar a jornada.";
   } else if (progress.complete) {
-    text.textContent = `🏆 Caminho completo! ${Math.abs(progress.delta).toFixed(1)} kg ${goalWord} desde o início (${progress.baseline} kg → ${progress.latest} kg).`;
+    text.textContent = `🏆 Caminho completo! ${progress.favorableWeighIns} pesagens favoráveis · peso atual ${progress.latest} kg (base ${progress.baseline} kg).`;
   } else {
-    const remaining = (progress.nextMilestone - Math.max(0, progress.delta)).toFixed(1);
-    text.textContent = `Etapa ${progress.stationsReached}/${progress.totalStations} · faltam ${remaining} kg ${goalWord} para a próxima (${progress.latest} kg, base ${progress.baseline} kg).`;
+    const favorableLatest = progress.series.length > 1 && (profile.weightGoal.type === "perder"
+      ? progress.latest < progress.baseline
+      : progress.latest > progress.baseline);
+    const feedback = progress.series.length === 1
+      ? "A próxima pesagem favorável avança uma etapa e rende 1 Cristal da Jornada."
+      : favorableLatest
+        ? "Esta pesagem avançou uma etapa e rendeu 1 Cristal da Jornada!"
+        : "Uma pesagem favorável em relação à base avança uma etapa e rende 1 Cristal.";
+    text.textContent = `Etapa ${progress.stationsReached}/${progress.totalStations} · ${progress.favorableWeighIns} pesagens favoráveis. ${feedback} Peso atual ${progress.latest} kg · base ${progress.baseline} kg.`;
   }
 
   const historyEl = document.getElementById("weightHistory");
@@ -849,9 +850,9 @@ function showLevelUpToast(level, unlockedItem) {
 function showWeightMilestoneToast(station, unlockedItem, complete) {
   const toast = document.getElementById("levelToast");
   const base = complete
-    ? `🏆 Caminho do Peso completo!`
-    : `🚩 Etapa ${station} do Caminho do Peso vencida!`;
-  toast.textContent = unlockedItem ? `${base} ${unlockedItem.emoji} ${unlockedItem.name} desbloqueado` : base;
+    ? `🏆 Caminho do Peso completo · +1 Cristal da Jornada`
+    : `🚩 Etapa ${station} vencida · +1 Cristal da Jornada`;
+  toast.textContent = unlockedItem ? `${base} · ${unlockedItem.emoji} ${unlockedItem.name} desbloqueado` : base;
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 2600);
 }
@@ -1810,9 +1811,8 @@ function init() {
   });
   document.getElementById("weightResetBtn").addEventListener("click", () => {
     const profile = getActiveProfile();
-    if (confirm("Apagar todo o histórico de peso deste perfil e recomeçar a jornada?")) {
+    if (confirm("Apagar todo o histórico de peso deste perfil e recomeçar? Itens já conquistados permanecem.")) {
       saveWeights(profile.id, []);
-      updateProfile(profile.id, (p) => { p.weightGoal.lastSeenStation = 0; });
       renderWeightGoalSettings(getActiveProfile());
       renderWeightPath(getActiveProfile());
     }
