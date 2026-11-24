@@ -194,7 +194,7 @@ function isItemUnlocked(item, profile, level, stationsReached) {
   if (item.unlockType === "level") return level >= item.unlockLevel;
   if (item.unlockType === "chapter") return (profile.story.completedChapters || []).includes(item.unlockChapter);
   if (item.unlockType === "weightStation") {
-    const earnedStations = Math.max(profile.weightGoal?.lastSeenStation || 0, stationsReached || 0);
+    const earnedStations = Math.max(profile.weightGoal?.highestRewardStation || 0, stationsReached || 0);
     return earnedStations >= item.unlockStation;
   }
   return false;
@@ -253,6 +253,7 @@ function ensureProfileDefaults(profile) {
   }
   if (profile.weightGoal.type === undefined) profile.weightGoal.type = null;
   if (profile.weightGoal.lastSeenStation == null) profile.weightGoal.lastSeenStation = 0;
+  if (profile.weightGoal.highestRewardStation == null) profile.weightGoal.highestRewardStation = profile.weightGoal.lastSeenStation;
   return profile;
 }
 
@@ -549,19 +550,26 @@ function getWeightProgress(profile) {
   };
 }
 
-// Verifica se o usuário venceu uma nova etapa desde a última vez que o
-// app mostrou isso, e comemora com o mesmo toast de nível.
+// Verifica se o usuário venceu uma nova etapa desde a última pesagem,
+// preservando o maior marco para que os acessórios ganhos não se percam.
 function checkWeightMilestones(profileId) {
   const profiles = loadProfiles();
   const profile = profiles.find((p) => p.id === profileId);
   if (!profile) return;
   const progress = getWeightProgress(profile);
   const lastSeen = profile.weightGoal.lastSeenStation || 0;
+  const highestReward = profile.weightGoal.highestRewardStation || 0;
   if (progress.stationsReached > lastSeen) {
-    const unlocked = ITEM_CATALOG.find((it) => it.unlockType === "weightStation" && it.unlockStation === progress.stationsReached) || null;
+    const unlocked = highestReward < progress.stationsReached
+      ? ITEM_CATALOG.find((it) => it.unlockType === "weightStation" && it.unlockStation === progress.stationsReached) || null
+      : null;
     profile.weightGoal.lastSeenStation = progress.stationsReached;
+    profile.weightGoal.highestRewardStation = Math.max(highestReward, progress.stationsReached);
     saveProfiles(profiles);
     showWeightMilestoneToast(progress.stationsReached, unlocked, progress.complete);
+  } else if (progress.stationsReached < lastSeen) {
+    profile.weightGoal.lastSeenStation = progress.stationsReached;
+    saveProfiles(profiles);
   }
 }
 
@@ -599,7 +607,7 @@ function renderWeightPath(profile) {
   if (!progress.hasData) {
     text.textContent = "Registre seu primeiro peso para começar a jornada.";
   } else if (progress.complete) {
-    text.textContent = `🏆 Caminho completo! ${progress.favorableWeighIns} pesagens favoráveis · peso atual ${progress.latest} kg (base ${progress.baseline} kg).`;
+    text.textContent = `🏆 Caminho completo! ${progress.totalStations}/${progress.totalStations} Cristais da Jornada · peso atual ${progress.latest} kg (base ${progress.baseline} kg).`;
   } else {
     const favorableLatest = progress.series.length > 1 && (profile.weightGoal.type === "perder"
       ? progress.latest < progress.baseline
@@ -607,9 +615,9 @@ function renderWeightPath(profile) {
     const feedback = progress.series.length === 1
       ? "A próxima pesagem favorável avança uma etapa e rende 1 Cristal da Jornada."
       : favorableLatest
-        ? "Esta pesagem avançou uma etapa e rendeu 1 Cristal da Jornada!"
+        ? "A pesagem mais recente está favorável; cada avanço rende 1 Cristal da Jornada."
         : "Uma pesagem favorável em relação à base avança uma etapa e rende 1 Cristal.";
-    text.textContent = `Etapa ${progress.stationsReached}/${progress.totalStations} · ${progress.favorableWeighIns} pesagens favoráveis. ${feedback} Peso atual ${progress.latest} kg · base ${progress.baseline} kg.`;
+    text.textContent = `Etapa ${progress.stationsReached}/${progress.totalStations} · 💎 ${progress.stationsReached} Cristais da Jornada. ${feedback} Peso atual ${progress.latest} kg · base ${progress.baseline} kg.`;
   }
 
   const historyEl = document.getElementById("weightHistory");
@@ -1813,6 +1821,7 @@ function init() {
     const profile = getActiveProfile();
     if (confirm("Apagar todo o histórico de peso deste perfil e recomeçar? Itens já conquistados permanecem.")) {
       saveWeights(profile.id, []);
+      updateProfile(profile.id, (p) => { p.weightGoal.lastSeenStation = 0; });
       renderWeightGoalSettings(getActiveProfile());
       renderWeightPath(getActiveProfile());
     }
