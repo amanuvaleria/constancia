@@ -134,6 +134,24 @@ const CHAPTERS = [
       { speaker: "Treinadora Aya", text: "Essa garrafinha carrega o símbolo do primeiro Guardião. Você fechou o círculo." },
     ],
   },
+  {
+    id: "espectro-balanca",
+    num: 4,
+    title: "O Espectro da Balança",
+    episodeLabel: "Capítulo 4 · O Espectro da Balança",
+    location: "Sala dos Espelhos, Academia Vargen",
+    boss: { name: "Espectro da Balança", emoji: "🪞" },
+    reward: { badge: "Emblema do Espelho Quebrado", accessoryId: "luvas_espectro" },
+    intro: [
+      { speaker: "Narrador", text: "A Sala dos Espelhos devolve números em vez de reflexos — e cada um parece zombar de você." },
+      { speaker: "Treinadora Aya", text: "O Espectro da Balança se alimenta de comparação, não de peso de verdade. Ele cresce quando você olha para o número e esquece o caminho." },
+      { speaker: "Treinadora Aya", text: "Siga treinando, siga pesando com calma — cada etapa vencida no seu Caminho do Peso é um golpe nele." },
+    ],
+    victory: [
+      { speaker: "Narrador", text: "Os espelhos racham e o Espectro se desfaz em poeira de vidro — os números nunca eram o inimigo." },
+      { speaker: "Treinadora Aya", text: "Essas luvas são para quem aprendeu a medir progresso, não perfeição. Bem-vinda à próxima fase." },
+    ],
+  },
 ];
 
 function getChapter(index) {
@@ -188,6 +206,8 @@ const ITEM_CATALOG = [
     unlockType: "weightStation", unlockStation: 6, unlockLabel: "6ª etapa do Caminho do Peso" },
   { id: "garrafinha_transformacao", type: "bottle", name: "Garrafinha da Transformação", emoji: "✨",
     unlockType: "weightStation", unlockStation: 8, unlockLabel: "Etapa final do Caminho do Peso" },
+  { id: "luvas_espectro", type: "gloves", name: "Luvas do Espectro", emoji: "🥊",
+    unlockType: "chapter", unlockChapter: "espectro-balanca", unlockLabel: "Vença o Espectro da Balança" },
 ];
 
 function isItemUnlocked(item, profile, level, stationsReached) {
@@ -207,7 +227,7 @@ function defaultCharacter(profileName) {
     hair: HAIR_PRESETS[0],
     outfit: OUTFIT_PRESETS[0],
     photo: null, // quando definido (ex.: "preset-01.jpg"), usa foto em vez do avatar vetorial
-    equipped: { shoe: "tenis_branco", headphones: null, jacket: null, bottle: null, headband: null },
+    equipped: { shoe: "tenis_branco", headphones: null, jacket: null, bottle: null, headband: null, gloves: null },
   };
 }
 
@@ -234,10 +254,10 @@ function ensureProfileDefaults(profile) {
     profile.story = { ...defaultStoryState(), badges: old.badges || [], accessories: old.accessories || [] };
   }
   if (!profile.character) profile.character = defaultCharacter(profile.name);
-  if (!profile.character.equipped) profile.character.equipped = { shoe: "tenis_branco", headphones: null, jacket: null, bottle: null, headband: null };
+  if (!profile.character.equipped) profile.character.equipped = { shoe: "tenis_branco", headphones: null, jacket: null, bottle: null, headband: null, gloves: null };
   // Migra o formato antigo (booleano) de itens equipáveis pra ids de item,
   // que agora podem distinguir entre mais de uma opção por tipo (ex.: duas jaquetas).
-  ["headphones", "jacket", "bottle", "headband"].forEach((type) => {
+  ["headphones", "jacket", "bottle", "headband", "gloves"].forEach((type) => {
     const current = profile.character.equipped[type];
     if (current === true) {
       const legacyItem = ITEM_CATALOG.find((it) => it.type === type && it.unlockType !== "weightStation");
@@ -246,6 +266,7 @@ function ensureProfileDefaults(profile) {
       profile.character.equipped[type] = null;
     }
   });
+  if (!("gloves" in profile.character.equipped)) profile.character.equipped.gloves = null;
   if (profile.character.lastSeenLevel == null) profile.character.lastSeenLevel = 1;
   if (profile.character.photo === undefined) profile.character.photo = null;
   if (!profile.weightGoal || typeof profile.weightGoal !== "object") {
@@ -771,6 +792,7 @@ function characterSvgMarkup(character) {
     eq.jacket ? "eq-jacket" : "",
     eq.bottle ? "eq-bottle" : "",
     eq.headband ? "eq-headband" : "",
+    eq.gloves ? "eq-gloves" : "",
   ].filter(Boolean).join(" ");
 
   return `
@@ -786,11 +808,13 @@ function characterSvgMarkup(character) {
 
     <!-- braco esquerdo -->
     <rect class="char-skin char-arm-left" x="34" y="92" width="18" height="46" rx="9"/>
+    <rect class="char-gloves" x="32" y="128" width="22" height="16" rx="7"/>
     <!-- tronco / roupa -->
     <rect x="48" y="84" width="64" height="58" rx="20" class="char-outfit"/>
     <rect x="48" y="84" width="64" height="58" rx="20" class="char-jacket char-jacket-layer"/>
     <!-- braco direito -->
     <rect class="char-skin char-arm-right" x="108" y="92" width="18" height="46" rx="9"/>
+    <rect class="char-gloves" x="106" y="128" width="22" height="16" rx="7"/>
 
     <!-- garrafinha na mao direita -->
     <g class="char-bottle">

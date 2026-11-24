@@ -560,6 +560,8 @@ button { font-family: inherit; }
 .char-svg.pose-water .char-bottle { display: block; }
 .char-svg .char-headband-layer { display: none; }
 .char-svg.eq-headband .char-headband-layer { display: block; }
+.char-svg .char-gloves { display: none; fill: #ef4444; stroke: #7f1d1d; stroke-width: 1.5; }
+.char-svg.eq-gloves .char-gloves { display: block; }
 
 .char-rig { transform-origin: 80px 110px; }
 
