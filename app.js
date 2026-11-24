@@ -165,7 +165,8 @@ const HAIR_PRESETS = ["#1b1b1b", "#3b2412", "#6b3f1d", "#a65e2e", "#d9a441", "#e
 const OUTFIT_PRESETS = ["#16a34a", "#2563eb", "#db2777", "#f59e0b", "#7c3aed", "#334155"];
 
 // Catálogo de itens equipáveis — alguns desbloqueiam por nível, outros por
-// vencer um capítulo da Saga (igual a um jogo de RPG com guarda-roupa).
+// vencer um capítulo da Saga, e outros por avançar no Caminho do Peso
+// (igual a um jogo de RPG com guarda-roupa).
 const ITEM_CATALOG = [
   { id: "tenis_branco", type: "shoe", name: "Tênis branco", emoji: "👟", color: "#f3f6f4",
     unlockType: "level", unlockLevel: 1, unlockLabel: "Disponível desde o início" },
@@ -179,11 +180,20 @@ const ITEM_CATALOG = [
     unlockType: "level", unlockLevel: 5, unlockLabel: "Alcance o nível 5" },
   { id: "garrafinha_guardiao", type: "bottle", name: "Garrafinha do Guardião", emoji: "🍶",
     unlockType: "chapter", unlockChapter: "desafio-aurora", unlockLabel: "Vença a Guardiã da Aurora" },
+  { id: "faixa_fenix", type: "headband", name: "Faixa da Fênix", emoji: "🔥",
+    unlockType: "weightStation", unlockStation: 2, unlockLabel: "2ª etapa do Caminho do Peso" },
+  { id: "jaqueta_jornada", type: "jacket", name: "Jaqueta da Jornada", emoji: "🧭",
+    unlockType: "weightStation", unlockStation: 4, unlockLabel: "4ª etapa do Caminho do Peso" },
+  { id: "fones_campea", type: "headphones", name: "Fones de Campeã", emoji: "🏆",
+    unlockType: "weightStation", unlockStation: 6, unlockLabel: "6ª etapa do Caminho do Peso" },
+  { id: "garrafinha_transformacao", type: "bottle", name: "Garrafinha da Transformação", emoji: "✨",
+    unlockType: "weightStation", unlockStation: 8, unlockLabel: "Etapa final do Caminho do Peso" },
 ];
 
-function isItemUnlocked(item, profile, level) {
+function isItemUnlocked(item, profile, level, stationsReached) {
   if (item.unlockType === "level") return level >= item.unlockLevel;
   if (item.unlockType === "chapter") return (profile.story.completedChapters || []).includes(item.unlockChapter);
+  if (item.unlockType === "weightStation") return (stationsReached || 0) >= item.unlockStation;
   return false;
 }
 
@@ -194,7 +204,7 @@ function defaultCharacter(profileName) {
     hair: HAIR_PRESETS[0],
     outfit: OUTFIT_PRESETS[0],
     photo: null, // quando definido (ex.: "preset-01.jpg"), usa foto em vez do avatar vetorial
-    equipped: { shoe: "tenis_branco", headphones: false, jacket: false, bottle: false, headband: false },
+    equipped: { shoe: "tenis_branco", headphones: null, jacket: null, bottle: null, headband: null },
   };
 }
 
@@ -221,10 +231,25 @@ function ensureProfileDefaults(profile) {
     profile.story = { ...defaultStoryState(), badges: old.badges || [], accessories: old.accessories || [] };
   }
   if (!profile.character) profile.character = defaultCharacter(profile.name);
-  if (!profile.character.equipped) profile.character.equipped = { shoe: "tenis_branco", headphones: false, jacket: false, bottle: false, headband: false };
-  if (profile.character.equipped.headband === undefined) profile.character.equipped.headband = false;
+  if (!profile.character.equipped) profile.character.equipped = { shoe: "tenis_branco", headphones: null, jacket: null, bottle: null, headband: null };
+  // Migra o formato antigo (booleano) de itens equipáveis pra ids de item,
+  // que agora podem distinguir entre mais de uma opção por tipo (ex.: duas jaquetas).
+  ["headphones", "jacket", "bottle", "headband"].forEach((type) => {
+    const current = profile.character.equipped[type];
+    if (current === true) {
+      const legacyItem = ITEM_CATALOG.find((it) => it.type === type && it.unlockType !== "weightStation");
+      profile.character.equipped[type] = legacyItem ? legacyItem.id : null;
+    } else if (current === false || current === undefined) {
+      profile.character.equipped[type] = null;
+    }
+  });
   if (profile.character.lastSeenLevel == null) profile.character.lastSeenLevel = 1;
   if (profile.character.photo === undefined) profile.character.photo = null;
+  if (!profile.weightGoal || typeof profile.weightGoal !== "object") {
+    profile.weightGoal = { type: null, lastSeenStation: 0 };
+  }
+  if (profile.weightGoal.type === undefined) profile.weightGoal.type = null;
+  if (profile.weightGoal.lastSeenStation == null) profile.weightGoal.lastSeenStation = 0;
   return profile;
 }
 
@@ -458,6 +483,170 @@ function renderStreak(profile) {
   }
 }
 
+// ---------------------------------------------------------------
+// Caminho do Peso: jornada em etapas, estilo mapa de jogo de anime.
+// O primeiro peso registrado é a base; cada etapa vencida (na direção
+// da meta escolhida) avança o personagem no caminho e libera uma
+// recompensa do guarda-roupa. Tudo é recalculado do histórico salvo.
+// ---------------------------------------------------------------
+
+const WEIGHT_MILESTONES_KG = [1, 2, 3, 5, 7, 10, 15, 20];
+
+function loadWeights(profileId) {
+  try {
+    const arr = JSON.parse(localStorage.getItem(`${STORAGE_PREFIX}:weights:${profileId}`));
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveWeights(profileId, arr) {
+  const sorted = [...arr].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+  localStorage.setItem(`${STORAGE_PREFIX}:weights:${profileId}`, JSON.stringify(sorted));
+}
+
+// Registra (ou corrige) o peso de uma data; uma data só guarda 1 valor.
+function logWeightEntry(profileId, dateKey, weight) {
+  if (!weight || weight <= 0) return;
+  const arr = loadWeights(profileId).filter((w) => w.key !== dateKey);
+  arr.push({ key: dateKey, weight: Math.round(weight * 10) / 10 });
+  saveWeights(profileId, arr);
+  checkWeightMilestones(profileId);
+  onDataChanged();
+}
+
+function deleteWeightEntry(profileId, dateKey) {
+  const arr = loadWeights(profileId).filter((w) => w.key !== dateKey);
+  saveWeights(profileId, arr);
+  checkWeightMilestones(profileId);
+  onDataChanged();
+}
+
+// Progresso sempre recalculado da lista de pesos salva — nunca um contador
+// manual — então editar/remover um registro ajusta a etapa na hora.
+function getWeightProgress(profile) {
+  const series = loadWeights(profile.id);
+  const configured = !!(profile.weightGoal && profile.weightGoal.type);
+  if (!configured || series.length === 0) {
+    return { configured, hasData: series.length > 0, series, stationsReached: 0, totalStations: WEIGHT_MILESTONES_KG.length };
+  }
+  const baseline = series[0].weight;
+  const latest = series[series.length - 1].weight;
+  const direction = profile.weightGoal.type === "perder" ? -1 : 1;
+  const delta = (latest - baseline) * direction;
+  const stationsReached = WEIGHT_MILESTONES_KG.filter((m) => delta >= m).length;
+  const totalStations = WEIGHT_MILESTONES_KG.length;
+  const nextMilestone = WEIGHT_MILESTONES_KG[stationsReached] ?? null;
+  const prevMilestone = stationsReached > 0 ? WEIGHT_MILESTONES_KG[stationsReached - 1] : 0;
+  const segmentProgress = nextMilestone
+    ? Math.max(0, Math.min(1, (delta - prevMilestone) / (nextMilestone - prevMilestone)))
+    : 1;
+  return {
+    configured: true, hasData: true, series, baseline, latest, delta,
+    stationsReached, totalStations, nextMilestone, segmentProgress,
+    complete: stationsReached >= totalStations,
+  };
+}
+
+// Verifica se o usuário venceu uma nova etapa desde a última vez que o
+// app mostrou isso, e comemora com o mesmo toast de nível.
+function checkWeightMilestones(profileId) {
+  const profiles = loadProfiles();
+  const profile = profiles.find((p) => p.id === profileId);
+  if (!profile) return;
+  const progress = getWeightProgress(profile);
+  const lastSeen = profile.weightGoal.lastSeenStation || 0;
+  if (progress.stationsReached > lastSeen) {
+    const unlocked = ITEM_CATALOG.find((it) => it.unlockType === "weightStation" && it.unlockStation === progress.stationsReached) || null;
+    profile.weightGoal.lastSeenStation = progress.stationsReached;
+    saveProfiles(profiles);
+    showWeightMilestoneToast(progress.stationsReached, unlocked, progress.complete);
+  } else if (progress.stationsReached < lastSeen) {
+    // corrigir um peso passado pode reduzir o progresso; não perde a etapa
+    // já vista, só sincroniza o contador interno se caiu bem abaixo.
+    profile.weightGoal.lastSeenStation = Math.max(progress.stationsReached, 0);
+    saveProfiles(profiles);
+  }
+}
+
+function renderWeightPath(profile) {
+  const progress = getWeightProgress(profile);
+  const prompt = document.getElementById("weightConfigPrompt");
+  const journey = document.getElementById("weightJourney");
+
+  if (!progress.configured) {
+    prompt.classList.remove("hidden");
+    journey.classList.add("hidden");
+    return;
+  }
+  prompt.classList.add("hidden");
+  journey.classList.remove("hidden");
+
+  const pathEl = document.getElementById("weightPath");
+  pathEl.innerHTML = "";
+  for (let i = 0; i < progress.totalStations; i++) {
+    const station = document.createElement("div");
+    const done = i < progress.stationsReached;
+    const isCurrent = i === progress.stationsReached;
+    station.className = "weight-station" + (done ? " done" : "") + (isCurrent ? " current" : "");
+    station.innerHTML = done ? "🚩" : isCurrent ? "🏃" : "·";
+    station.title = `Etapa ${i + 1} · ${WEIGHT_MILESTONES_KG[i]} kg`;
+    pathEl.appendChild(station);
+    if (i < progress.totalStations - 1) {
+      const connector = document.createElement("div");
+      connector.className = "weight-connector" + (i < progress.stationsReached ? " done" : "");
+      pathEl.appendChild(connector);
+    }
+  }
+
+  const goalWord = profile.weightGoal.type === "perder" ? "perdidos" : "ganhos";
+  const text = document.getElementById("weightProgressText");
+  if (!progress.hasData) {
+    text.textContent = "Registre seu primeiro peso para começar a jornada.";
+  } else if (progress.complete) {
+    text.textContent = `🏆 Caminho completo! ${Math.abs(progress.delta).toFixed(1)} kg ${goalWord} desde o início (${progress.baseline} kg → ${progress.latest} kg).`;
+  } else {
+    const remaining = (progress.nextMilestone - Math.max(0, progress.delta)).toFixed(1);
+    text.textContent = `Etapa ${progress.stationsReached}/${progress.totalStations} · faltam ${remaining} kg ${goalWord} para a próxima (${progress.latest} kg, base ${progress.baseline} kg).`;
+  }
+
+  const historyEl = document.getElementById("weightHistory");
+  historyEl.innerHTML = "";
+  [...progress.series].reverse().slice(0, 5).forEach((entry) => {
+    const row = document.createElement("div");
+    row.className = "weight-history-row";
+    row.innerHTML = `
+      <span class="weight-history-date">${formatShortDayLabel(parseDateKey(entry.key))}</span>
+      <span class="weight-history-value">${entry.weight} kg</span>
+      <button class="weight-history-delete" type="button" aria-label="Remover registro">✕</button>
+    `;
+    row.querySelector(".weight-history-delete").addEventListener("click", () => {
+      deleteWeightEntry(profile.id, entry.key);
+    });
+    historyEl.appendChild(row);
+  });
+}
+
+function renderWeightGoalSettings(profile) {
+  document.getElementById("weightGoalProfileName").textContent = profile.name;
+  const perderBtn = document.getElementById("goalPerderBtn");
+  const ganharBtn = document.getElementById("goalGanharBtn");
+  perderBtn.classList.toggle("selected", profile.weightGoal.type === "perder");
+  ganharBtn.classList.toggle("selected", profile.weightGoal.type === "ganhar");
+
+  const note = document.getElementById("weightGoalStatusNote");
+  const series = loadWeights(profile.id);
+  if (!profile.weightGoal.type) {
+    note.textContent = "Meta ainda não definida.";
+  } else {
+    const goalLabel = profile.weightGoal.type === "perder" ? "perder peso" : "ganhar massa";
+    note.textContent = series.length
+      ? `Meta: ${goalLabel}. Ponto de partida: ${series[0].weight} kg.`
+      : `Meta: ${goalLabel}. Registre seu primeiro peso na aba Hoje para começar.`;
+  }
+}
+
 function countExerciseInWeek(profileId, monday) {
   const data = loadData(profileId);
   let count = 0;
@@ -657,6 +846,16 @@ function showLevelUpToast(level, unlockedItem) {
   setTimeout(() => toast.classList.remove("show"), 2600);
 }
 
+function showWeightMilestoneToast(station, unlockedItem, complete) {
+  const toast = document.getElementById("levelToast");
+  const base = complete
+    ? `🏆 Caminho do Peso completo!`
+    : `🚩 Etapa ${station} do Caminho do Peso vencida!`;
+  toast.textContent = unlockedItem ? `${base} ${unlockedItem.emoji} ${unlockedItem.name} desbloqueado` : base;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2600);
+}
+
 function applyCharacterPreset(profileId, preset) {
   updateProfile(profileId, (p) => {
     if (preset.type === "photo") {
@@ -712,6 +911,7 @@ function renderToday() {
   document.getElementById("weekExerciseLabel").textContent = `Exercício: ${exCount}/7 dias nesta semana`;
 
   renderStreak(profile);
+  renderWeightPath(profile);
   renderMission(profile, entry);
 }
 
@@ -1107,7 +1307,7 @@ function renderCharacterPage() {
     });
   }
 
-  renderItemGrid(profile, level);
+  renderItemGrid(profile, level, getWeightProgress(profile).stationsReached);
 }
 
 function renderPresetRow(profile, character) {
@@ -1155,14 +1355,12 @@ function renderSwatchRow(containerId, colors, selected, onPick) {
   });
 }
 
-function renderItemGrid(profile, level) {
+function renderItemGrid(profile, level, stationsReached) {
   const grid = document.getElementById("itemGrid");
   grid.innerHTML = "";
   ITEM_CATALOG.forEach((item) => {
-    const locked = !isItemUnlocked(item, profile, level);
-    const equippedBool = item.type === "shoe"
-      ? profile.character.equipped.shoe === item.id
-      : !!profile.character.equipped[item.type] && getEquippedIdForType(profile, item.type) === item.id;
+    const locked = !isItemUnlocked(item, profile, level, stationsReached);
+    const equippedBool = getEquippedIdForType(profile, item.type) === item.id;
 
     const tile = document.createElement("button");
     tile.type = "button";
@@ -1179,21 +1377,19 @@ function renderItemGrid(profile, level) {
   });
 }
 
-// Para itens boolean (fones/jaqueta/garrafinha) guardamos um id "fixo";
-// como só existe 1 opção de cada tipo por enquanto, equipped[type]=true
-// já identifica esse item. Isso resolve o id pra comparação no grid.
+// Cada tipo de item (shoe, headphones, jacket, bottle, headband) guarda o
+// id do item equipado (ou null); permite ter mais de uma opção por tipo.
 function getEquippedIdForType(profile, type) {
-  if (!profile.character.equipped[type]) return null;
-  const item = ITEM_CATALOG.find((i) => i.type === type);
-  return item ? item.id : null;
+  return profile.character.equipped[type] || null;
 }
 
 function toggleEquip(profileId, item) {
   updateProfile(profileId, (p) => {
+    const current = p.character.equipped[item.type];
     if (item.type === "shoe") {
-      p.character.equipped.shoe = item.id;
+      p.character.equipped.shoe = item.id; // sempre precisa de 1 tênis equipado
     } else {
-      p.character.equipped[item.type] = !p.character.equipped[item.type];
+      p.character.equipped[item.type] = current === item.id ? null : item.id;
     }
   });
   renderCharacterPage();
@@ -1240,6 +1436,7 @@ function renderProfiles() {
   });
 
   renderMissionSettings(getActiveProfile());
+  renderWeightGoalSettings(getActiveProfile());
 }
 
 // ---------------------------------------------------------------
@@ -1584,6 +1781,41 @@ function init() {
       const after = getEntry(profileId, key)[habit];
       if (!before && after) playCharacterPose("pose-celebrate");
     });
+  });
+
+  // Caminho do Peso: registro de peso e navegação até a configuração
+  document.getElementById("weightLogBtn").addEventListener("click", () => {
+    const input = document.getElementById("weightInput");
+    const value = Number(input.value);
+    if (value > 0) {
+      logWeightEntry(getActiveProfile().id, todayKey(), value);
+      playCharacterPose("pose-victory");
+      input.value = "";
+    }
+  });
+  document.getElementById("weightGoToProfileBtn").addEventListener("click", () => {
+    goToPage("perfis");
+  });
+  document.getElementById("goalPerderBtn").addEventListener("click", () => {
+    const profile = getActiveProfile();
+    updateProfile(profile.id, (p) => { p.weightGoal.type = p.weightGoal.type === "perder" ? null : "perder"; });
+    renderWeightGoalSettings(getActiveProfile());
+    renderWeightPath(getActiveProfile());
+  });
+  document.getElementById("goalGanharBtn").addEventListener("click", () => {
+    const profile = getActiveProfile();
+    updateProfile(profile.id, (p) => { p.weightGoal.type = p.weightGoal.type === "ganhar" ? null : "ganhar"; });
+    renderWeightGoalSettings(getActiveProfile());
+    renderWeightPath(getActiveProfile());
+  });
+  document.getElementById("weightResetBtn").addEventListener("click", () => {
+    const profile = getActiveProfile();
+    if (confirm("Apagar todo o histórico de peso deste perfil e recomeçar a jornada?")) {
+      saveWeights(profile.id, []);
+      updateProfile(profile.id, (p) => { p.weightGoal.lastSeenStation = 0; });
+      renderWeightGoalSettings(getActiveProfile());
+      renderWeightPath(getActiveProfile());
+    }
   });
 
   // personagem: nome

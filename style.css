@@ -847,5 +847,74 @@ body.character-page-active .icon-btn { background: #fff; color: var(--text-dark)
   .streak-footer { font-size: .66rem; }
 }
 
+/* Caminho do Peso: jornada em etapas, estilo mapa de jogo de anime. */
+.weight-card {
+  background: linear-gradient(145deg, #1e2b22, #161c18);
+  border: 1px solid #343f38;
+  border-left: 3px solid var(--electric);
+  padding: 14px;
+}
+.weight-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.weight-icon {
+  width: 42px; height: 42px; flex: 0 0 42px;
+  display: grid; place-items: center;
+  border-radius: 13px;
+  background: rgba(62,166,255,.14);
+  font-size: 1.3rem;
+}
+.weight-heading h2 {
+  margin: 0 0 3px; color: var(--text);
+  font: italic 900 1.05rem "Arial Narrow", Impact, sans-serif;
+}
+.weight-heading p { margin: 0; color: var(--muted); font-size: .75rem; }
+.weight-config-prompt { padding-top: 10px; }
+.weight-config-prompt p { color: var(--muted); font-size: .82rem; margin: 0 0 10px; }
+.weight-config-prompt.hidden, .weight-journey.hidden { display: none; }
+
+.weight-path {
+  display: flex; align-items: center; gap: 2px;
+  margin: 14px 0 8px; overflow-x: auto; padding: 4px 2px;
+}
+.weight-station {
+  flex: 0 0 26px; width: 26px; height: 26px;
+  border-radius: 50%; background: #16171a; border: 2px solid #3a3c43;
+  display: grid; place-items: center; font-size: .8rem; color: #6c6e76;
+}
+.weight-station.done { background: var(--lime); border-color: var(--lime); }
+.weight-station.current {
+  background: var(--electric); border-color: var(--electric);
+  box-shadow: 0 0 0 4px rgba(62,166,255,.18);
+}
+.weight-connector { flex: 1 1 14px; min-width: 10px; height: 3px; background: #343f38; border-radius: 3px; }
+.weight-connector.done { background: var(--lime); }
+.weight-progress-text { color: var(--muted); font-size: .78rem; line-height: 1.4; margin: 0 0 12px; }
+
+.weight-log-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.weight-log-row input {
+  flex: 1; min-width: 0;
+  background: var(--graphite-2); border: 1px solid var(--card-border); color: var(--text);
+  border-radius: 10px; padding: 10px 12px; font-size: 1rem;
+}
+.weight-history { display: flex; flex-direction: column; gap: 6px; }
+.weight-history-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(0,0,0,.2); border-radius: 9px; padding: 7px 10px;
+  font-size: .8rem;
+}
+.weight-history-date { color: var(--muted); flex: 1; }
+.weight-history-value { color: var(--text); font-weight: 700; }
+.weight-history-delete {
+  background: transparent; border: none; color: var(--red);
+  font-size: .85rem; cursor: pointer; padding: 2px 4px;
+}
+
+/* Meta de peso (Perfil) */
+.weight-goal-chips { display: flex; gap: 8px; margin: 10px 0; }
+.goal-chip {
+  flex: 1; background: var(--bg-elev); border: 1px solid var(--card-border); color: var(--text);
+  border-radius: 12px; padding: 12px 10px; font-size: .88rem; font-weight: 700; cursor: pointer;
+}
+.goal-chip.selected { border-color: var(--electric); background: rgba(62,166,255,.14); color: var(--electric); }
+
 
 

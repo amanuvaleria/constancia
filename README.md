@@ -22,6 +22,11 @@ Pages.
 - **Ritmo de atleta**: sequência atual e recorde de dias com ao menos um
   hábito concluído, visão dos últimos 7 dias e marcos de 3, 7, 14, 30, 60
   e 100 dias. Tudo é recalculado do histórico e isolado por perfil.
+- **Caminho do Peso**: jornada em 8 etapas estilo mapa de jogo de anime.
+  O primeiro peso registrado vira a base; a cada etapa vencida na direção
+  da meta escolhida (perder peso ou ganhar massa), o personagem avança no
+  caminho e libera um item do guarda-roupa. Peso é editável/removível a
+  qualquer momento, e a etapa é sempre recalculada do histórico salvo.
 
 ### Saga (história)
 - 3 capítulos escritos: **A Torre do Impulso** (Guardião da Inércia),
@@ -44,8 +49,8 @@ Pages.
 - Vários perfis no mesmo aparelho (ex.: cada pessoa da casa), com
   históricos separados, salvos automaticamente no navegador.
 - Por perfil: meta semanal de treinos, dias de treino planejados,
-  horário do aviso de missão, e os botões "Ativar avisos de missão",
-  "Enviar aviso de teste" e "Pausar avisos".
+  horário do aviso de missão, meta de peso (perder/ganhar) e os botões
+  "Ativar avisos de missão", "Enviar aviso de teste" e "Pausar avisos".
 - Aviso de que os dados ficam só naquele navegador/aparelho.
 
 ### Personagem (gamificação)

@@ -1,6 +1,6 @@
 // Service worker do Constância: cache offline dos arquivos estáticos.
 // Caminhos relativos para funcionar em qualquer subpasta (ex.: GitHub Pages).
-const CACHE_NAME = "constancia-v11";
+const CACHE_NAME = "constancia-v12";
 const ASSETS = ["./", "./index.html", "./style.css", "./app.js", "./manifest.json", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (event) => {

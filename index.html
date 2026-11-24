@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Constância">
-<link rel="stylesheet" href="./style.css?v=11">
+<link rel="stylesheet" href="./style.css?v=12">
 </head>
 <body>
 
@@ -154,6 +154,34 @@
       </div>
     </section>
 
+    <!-- Caminho do Peso -->
+    <section class="card weight-card" aria-labelledby="weightTitle">
+      <div class="weight-head">
+        <span class="weight-icon" aria-hidden="true">🧭</span>
+        <div class="weight-heading">
+          <h2 id="weightTitle">Caminho do Peso</h2>
+          <p id="weightSubtitle">Cada etapa vencida é um avanço na sua jornada.</p>
+        </div>
+      </div>
+
+      <div id="weightConfigPrompt" class="weight-config-prompt hidden">
+        <p>Configure sua meta de peso no Perfil para começar essa jornada.</p>
+        <button class="btn btn-outline" id="weightGoToProfileBtn">Configurar meta de peso</button>
+      </div>
+
+      <div id="weightJourney" class="weight-journey hidden">
+        <div class="weight-path" id="weightPath"></div>
+        <p class="weight-progress-text" id="weightProgressText">—</p>
+
+        <div class="weight-log-row">
+          <input type="number" id="weightInput" placeholder="Peso de hoje (kg)" min="1" step="0.1" inputmode="decimal">
+          <button class="btn btn-primary" id="weightLogBtn">Registrar</button>
+        </div>
+
+        <div class="weight-history" id="weightHistory"></div>
+      </div>
+    </section>
+
   </main>
 
   <!-- ===================== PÁGINA: HISTÓRICO ===================== -->
@@ -273,6 +301,21 @@
       <p class="settings-note" id="alertsStatusNote">Avisos de missão: desativados.</p>
     </section>
 
+    <section class="card weight-goal-card">
+      <h2 class="section-title">Meta de peso — <span id="weightGoalProfileName">perfil</span></h2>
+      <p class="settings-note">
+        O primeiro peso que você registrar na aba Hoje vira o ponto de
+        partida da sua jornada. A cada etapa vencida na direção da sua
+        meta, seu personagem avança no caminho e ganha uma recompensa.
+      </p>
+      <div class="weight-goal-chips">
+        <button class="goal-chip" id="goalPerderBtn" type="button">⬇️ Perder peso</button>
+        <button class="goal-chip" id="goalGanharBtn" type="button">⬆️ Ganhar massa</button>
+      </div>
+      <p class="settings-note" id="weightGoalStatusNote">Meta ainda não definida.</p>
+      <button class="btn btn-ghost" id="weightResetBtn">Reiniciar jornada de peso</button>
+    </section>
+
     <section class="card settings-card">
       <h2 class="section-title">Configurações</h2>
       <p class="settings-note">
@@ -377,6 +420,6 @@
   </article>
 </template>
 
-<script src="./app.js?v=11"></script>
+<script src="./app.js?v=12"></script>
 </body>
 </html>
